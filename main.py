@@ -1,4 +1,4 @@
-from src.samplingTool import SamplingTool
+from src.synthesisTool import SynthesisTool
 from PyQt5.QtWidgets import QApplication
 #from src.de_internet.latexManagement import testingLatexInMatPlotLib
 
@@ -9,7 +9,7 @@ if __name__ == '__main__':
 #        testingLatexInMatPlotLib()
 #    else:
     app = QApplication([])
-    window = SamplingTool()
+    window = SynthesisTool()
     window.show()
     app.exec()
 
