@@ -19,7 +19,7 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tab_synthesis">
       <attribute name="title">
        <string>Synthesis</string>
       </attribute>
@@ -27,7 +27,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="pushButton_synthesize_loadFile">
            <property name="minimumSize">
             <size>
              <width>24</width>
@@ -46,7 +46,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="label_loadFile">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -78,17 +78,17 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_8"/>
+            <layout class="QHBoxLayout" name="horizontalLayout_synthesis_trackList"/>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_3">
+            <widget class="QPushButton" name="pushButton_synthesize_synthesize">
              <property name="text">
               <string>Synthesize</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_2">
+            <widget class="QPushButton" name="pushButton_synthesize_save">
              <property name="text">
               <string>Save</string>
              </property>
@@ -108,7 +108,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QPushButton" name="pushButton_5">
+              <widget class="QPushButton" name="pushButton_synthesize_play_pause">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -127,7 +127,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_6">
+              <widget class="QPushButton" name="pushButton_synthesize_stop">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -146,7 +146,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_7">
+              <widget class="QPushButton" name="pushButton_synthesize_back">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -165,7 +165,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_8">
+              <widget class="QPushButton" name="pushButton_synthesize_foward">
                <property name="minimumSize">
                 <size>
                  <width>40</width>
@@ -206,7 +206,7 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+            <layout class="QHBoxLayout" name="horizontalLayout_synthesis_effectList"/>
            </item>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
@@ -269,7 +269,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tab_spectrogram">
       <attribute name="title">
        <string>Spectrogram</string>
       </attribute>
@@ -277,7 +277,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_14"/>
+          <layout class="QHBoxLayout" name="horizontalLayout_spectrogram_trackList"/>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_10">
@@ -370,7 +370,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tab_singleNotes">
       <attribute name="title">
        <string>Single Notes</string>
       </attribute>
@@ -606,12 +606,12 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_11">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_16"/>
+          <layout class="QHBoxLayout" name="horizontalLayout_singleNotes_noteList"/>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_17">
            <item>
-            <widget class="QPushButton" name="pushButton_12">
+            <widget class="QPushButton" name="pushButton_singleNotes_trashcan">
              <property name="minimumSize">
               <size>
                <width>40</width>
@@ -630,7 +630,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_13">
+            <widget class="QPushButton" name="pushButton_singleNotes_play">
              <property name="minimumSize">
               <size>
                <width>40</width>
@@ -653,6 +653,32 @@
         </layout>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab_test">
+      <attribute name="title">
+       <string>testPage</string>
+      </attribute>
+      <widget class="QFrame" name="frame_test">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>150</y>
+         <width>126</width>
+         <height>126</height>
+        </rect>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Box</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_12">
+        <item>
+         <widget class="QDial" name="dial_4"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </widget>
    </item>
