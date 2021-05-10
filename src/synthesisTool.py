@@ -41,10 +41,27 @@ class SynthesisTool(QWidget,Ui_Form):
         self.setWindowIcon(QtGui.QIcon('py.png'))
 
         self.pushButton_synthesize_loadFile.clicked.connect(self.test)
+        self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
 
         self.initIcons()
+
+        self.__setCallbacks()
+
+    def __setCallbacks(self):
+        self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
+        self.__CB_radioButton_selectNoteByFrequency()
+
+    def __CB_radioButton_selectNoteByFrequency(self):
+        checked = self.radioButton_singleNotes_selectNoteByFrequency.isChecked()
+        self.label_singleNotes_frequency.setVisible(checked)
+        self.doubleSpinBox_singleNotes_frequency.setVisible(checked)
+        self.label_singleNotes_note.setVisible(not checked)
+        self.comboBox_singleNotes_note.setVisible(not checked)
+        self.label_singleNotes_octave.setVisible(not checked)
+        self.comboBox_singleNotes_octave.setVisible(not checked)
+
 
     def initIcons(self):
         scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -60,18 +77,129 @@ class SynthesisTool(QWidget,Ui_Form):
 
         #self.pushButton_synthesize_foward.setDisabled(True)
 
+    def create_synthesis_track_box(self,newFrameName,numberOfTrack):
+        new_frame = QtWidgets.QFrame(self.tab_synthesis)
+        new_frame.setMinimumSize(QtCore.QSize(200,100))
+        new_frame.setMaximumSize(QtCore.QSize(200,100))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(newFrameName)
+
+        new_VLayout = QtWidgets.QVBoxLayout(new_frame)
+        new_VLayout.setObjectName("VLayout_"+newFrameName)
+
+        new_HLayout = QtWidgets.QHBoxLayout()
+        new_HLayout.setObjectName("HLayout_"+newFrameName)
+
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_"+newFrameName)
+        new_label.setText("Track {0}".format(numberOfTrack))
+        new_HLayout.addWidget(new_label)
+
+        new_button = QtWidgets.QPushButton(new_frame)
+        new_button.setObjectName("Button_"+newFrameName)
+        new_button.setText("Select")
+        new_HLayout.addWidget(new_button)
+
+        new_radioButton = QtWidgets.QRadioButton(new_frame)
+        new_radioButton.setObjectName("RadioButton_"+newFrameName)
+        new_radioButton.setText("Mute")
+        new_HLayout.addWidget(new_radioButton)
+
+        new_VLayout.addLayout(new_HLayout)
+
+        new_HSlider = QtWidgets.QSlider(new_frame)
+        new_HSlider.setOrientation(QtCore.Qt.Horizontal)
+        new_HSlider.setObjectName("Slider_"+newFrameName)
+        new_HSlider.setRange(0,99)
+        new_HSlider.setValue(99)
+        new_VLayout.addWidget(new_HSlider)
+
+        new_comboBox = QtWidgets.QComboBox(new_frame)
+        new_comboBox.setObjectName("ComboBox_"+newFrameName)
+        new_comboBox.addItem("")
+        new_comboBox.addItem("")
+        new_comboBox.addItem("")
+        new_VLayout.addWidget(new_comboBox)
+
+        self.verticalLayout_synthesis_trackList.addWidget(new_frame)
+
+    def create_synthesis_effect_box(self,newFrameName,newEffectName,newExtraData):
+        new_frame = QtWidgets.QFrame(self.tab_synthesis)
+        #new_frame.setMinimumSize(QtCore.QSize(200,100))
+        new_frame.setMaximumSize(QtCore.QSize(16777215,90))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(newFrameName)
+
+        new_VLayout = QtWidgets.QVBoxLayout(new_frame)
+        new_VLayout.setObjectName("VLayout_" + newFrameName)
+
+        new_HLayout = QtWidgets.QHBoxLayout()
+        new_HLayout.setObjectName("HLayout_" + newFrameName)
+
+        new_Xbutton = QtWidgets.QPushButton(new_frame)
+        new_Xbutton.setMinimumSize(QtCore.QSize(24,24))
+        new_Xbutton.setMaximumSize(QtCore.QSize(24, 24))
+        new_Xbutton.setObjectName("XButton_" + newFrameName)
+        new_Xbutton.setText("X")
+        new_HLayout.addWidget(new_Xbutton)
+
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_" + newFrameName)
+        new_label.setText(newEffectName)
+        new_HLayout.addWidget(new_label)
+
+        new_button = QtWidgets.QPushButton(new_frame)
+        new_Xbutton.setMaximumSize(QtCore.QSize(60, 16777215))
+        new_button.setObjectName("Button_" + newFrameName)
+        new_button.setText("Select")
+        new_HLayout.addWidget(new_button)
+
+        new_VLayout.addLayout(new_HLayout)
+
+        new_extralabel = QtWidgets.QLabel(new_frame)
+        new_extralabel.setObjectName("ExtraLabel_" + newFrameName)
+        new_extralabel.setText(newExtraData)
+        new_VLayout.addWidget(new_extralabel)
+
+        self.verticalLayout_synthesis_effectList.addWidget(new_frame)
+
+    def create_spectrogram_track_box(self,newFrameName,numberOfTrack):
+        new_frame = QtWidgets.QFrame(self.scrollAreaWidgetContents_5)
+        new_frame.setMaximumSize(QtCore.QSize(16777215, 45))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(newFrameName)
+        new_HLayout = QtWidgets.QHBoxLayout(new_frame)
+        new_HLayout.setObjectName("HLayout_"+newFrameName)
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_"+newFrameName)
+        new_label.setText("Track {0}".format(numberOfTrack))
+        new_HLayout.addWidget(new_label)
+        new_radioButton = QtWidgets.QRadioButton(new_frame)
+        new_radioButton.setMaximumSize(QtCore.QSize(16, 16))
+        new_radioButton.setText("")
+        new_radioButton.setObjectName("RadioButton_"+newFrameName)
+        new_HLayout.addWidget(new_radioButton)
+        self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
+
     def test(self):
         print("test")
-
         if self.testingvar == 0:
-            self.testingvar = 1
+            self.create_synthesis_track_box("nombre",99)
+            self.create_synthesis_effect_box("framename","Echo","Extra data goes here")
+            self.create_spectrogram_track_box("nombrecito",999)
+
+        elif self.testingvar == 2:
+            self.testingvar = 1 #!!!
             self.frame__1 = QtWidgets.QFrame(self.tab_synthesis)
             self.frame__1.setMinimumSize(QtCore.QSize(100,100))
             self.frame__1.setMaximumSize(QtCore.QSize(100,100))
             self.frame__1.setFrameShape(QtWidgets.QFrame.Box)
             self.frame__1.setFrameShadow(QtWidgets.QFrame.Raised)
             self.frame__1.setObjectName("frame__1")
-            self.horizontalLayout_synthesis_trackList.addWidget(self.frame__1)
+            self.verticalLayout_synthesis_trackList.addWidget(self.frame__1)
 
             self.verticalLayout__1=QtWidgets.QVBoxLayout(self.frame__1)
             self.verticalLayout__1.setObjectName("verticalLayout__1")
@@ -92,7 +220,6 @@ class SynthesisTool(QWidget,Ui_Form):
         else:
             self.testingvar = 0
 
-            print("")
             self.verticalLayout__1.removeWidget(self.pushButton__1)
             self.pushButton__1.deleteLater()
             self.pushButton__1 = None
@@ -103,7 +230,7 @@ class SynthesisTool(QWidget,Ui_Form):
             self.verticalLayout__1.deleteLater()
             self.verticalLayout__1 = None
 
-            self.horizontalLayout_synthesis_trackList.removeWidget(self.frame__1)
+            self.verticalLayout_synthesis_trackList.removeWidget(self.frame__1)
             self.frame__1.deleteLater()
             self.frame__1 = None
 

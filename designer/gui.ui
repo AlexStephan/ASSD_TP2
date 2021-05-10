@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
-    <height>655</height>
+    <width>698</width>
+    <height>731</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_synthesis">
       <attribute name="title">
@@ -78,10 +78,132 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_synthesis_trackList"/>
+            <widget class="QScrollArea" name="scrollArea_synthesis_trackList">
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>250</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents_3">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>246</width>
+                <height>540</height>
+               </rect>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_synthesis_trackList">
+                 <item>
+                  <widget class="QFrame" name="frame_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>200</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_16">
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_6">
+                      <item>
+                       <widget class="QLabel" name="label_6">
+                        <property name="text">
+                         <string>TextLabel</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QRadioButton" name="radioButton">
+                        <property name="text">
+                         <string>RadioButton</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <widget class="QSlider" name="horizontalSlider">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox_14">
+                      <item>
+                       <property name="text">
+                        <string>list0</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>list1</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>list2</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QFrame" name="frame_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>300</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </widget>
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_synthesize_synthesize">
+             <property name="maximumSize">
+              <size>
+               <width>250</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>Synthesize</string>
              </property>
@@ -89,6 +211,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_synthesize_save">
+             <property name="maximumSize">
+              <size>
+               <width>250</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>Save</string>
              </property>
@@ -188,10 +316,10 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QComboBox" name="comboBox"/>
+              <widget class="QComboBox" name="comboBox_synthesize_selectEffectType"/>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_4">
+              <widget class="QPushButton" name="pushButton_synthesize_addEffect">
                <property name="maximumSize">
                 <size>
                  <width>70</width>
@@ -206,10 +334,109 @@
             </layout>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_synthesis_effectList"/>
+            <widget class="QScrollArea" name="scrollArea_synthesis_effectList">
+             <property name="widgetResizable">
+              <bool>true</bool>
+             </property>
+             <widget class="QWidget" name="scrollAreaWidgetContents_4">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>318</width>
+                <height>360</height>
+               </rect>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_17">
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_synthesis_effectList">
+                 <item>
+                  <widget class="QFrame" name="frame_4">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>90</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_18">
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_7">
+                      <item>
+                       <widget class="QPushButton" name="pushButton">
+                        <property name="minimumSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>X</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="label_9">
+                        <property name="text">
+                         <string>TextLabel</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="pushButton_2">
+                        <property name="maximumSize">
+                         <size>
+                          <width>60</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Select</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="horizontalLayout_8">
+                      <item>
+                       <widget class="QLabel" name="label_7">
+                        <property name="text">
+                         <string>TextLabel</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="label_8">
+                        <property name="text">
+                         <string>TextLabel</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <layout class="QHBoxLayout" name="horizontalLayout_synthesize_currentEffectSettings">
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_5">
                <item>
@@ -277,17 +504,93 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_8">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_spectrogram_trackList"/>
+          <widget class="QScrollArea" name="scrollArea_spectrogram_trackList">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_5">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>196</width>
+              <height>484</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_20">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_spectrogram_trackList">
+               <item>
+                <widget class="QFrame" name="frame_5">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>45</height>
+                  </size>
+                 </property>
+                 <property name="frameShape">
+                  <enum>QFrame::StyledPanel</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Raised</enum>
+                 </property>
+                 <layout class="QHBoxLayout" name="horizontalLayout_10">
+                  <item>
+                   <widget class="QLabel" name="label_10">
+                    <property name="text">
+                     <string>TextLabel</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButton_2">
+                    <property name="maximumSize">
+                     <size>
+                      <width>16</width>
+                      <height>16</height>
+                     </size>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_10">
+          <widget class="QPushButton" name="pushButton_spectrogram_selectAll">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Select All</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_11">
+          <widget class="QPushButton" name="pushButton_spectrogram_deselectAll">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Deselect All</string>
            </property>
@@ -296,33 +599,77 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
-            <widget class="QLabel" name="label_6">
+            <widget class="QLabel" name="label_spectrogram_intTime">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>Int Time</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_2"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_spectrogram_intTime">
+             <property name="minimumSize">
+              <size>
+               <width>115</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>115</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_13">
            <item>
-            <widget class="QLabel" name="label_5">
+            <widget class="QLabel" name="label_spectrogram_duration">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
               <string>Duration</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_spectrogram_plot">
+             <property name="minimumSize">
+              <size>
+               <width>115</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>115</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_9">
+          <widget class="QPushButton" name="pushButton_spectrogram_plot">
+           <property name="maximumSize">
+            <size>
+             <width>200</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="text">
             <string>Plot</string>
            </property>
@@ -340,7 +687,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_9">
          <item>
-          <widget class="QStackedWidget" name="stackedWidget">
+          <widget class="QStackedWidget" name="stackedWidget_spectrogram">
            <widget class="QWidget" name="page"/>
            <widget class="QWidget" name="page_2"/>
           </widget>
@@ -361,7 +708,7 @@
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_11">
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_10"/>
+             <layout class="QHBoxLayout" name="horizontalLayout_spectrogram_plotSettings"/>
             </item>
            </layout>
           </widget>
@@ -378,7 +725,7 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_10">
          <item>
-          <widget class="QComboBox" name="comboBox_2">
+          <widget class="QComboBox" name="comboBox_singleNotes_selectInstrument">
            <item>
             <property name="text">
              <string>Select Instrument</string>
@@ -387,7 +734,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QRadioButton" name="radioButton">
+          <widget class="QRadioButton" name="radioButton_singleNotes_selectNoteByFrequency">
            <property name="text">
             <string>Select note by frequency</string>
            </property>
@@ -396,28 +743,28 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_23">
            <item>
-            <widget class="QLabel" name="label_10">
+            <widget class="QLabel" name="label_singleNotes_frequency">
              <property name="text">
               <string>Frequency</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_6"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_singleNotes_frequency"/>
            </item>
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_22">
            <item>
-            <widget class="QLabel" name="label_11">
+            <widget class="QLabel" name="label_singleNotes_note">
              <property name="text">
               <string>Note</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox_4">
+            <widget class="QComboBox" name="comboBox_singleNotes_note">
              <item>
               <property name="text">
                <string>C</string>
@@ -485,14 +832,14 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_21">
            <item>
-            <widget class="QLabel" name="label_12">
+            <widget class="QLabel" name="label_singleNotes_octave">
              <property name="text">
               <string>Octave</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox_3">
+            <widget class="QComboBox" name="comboBox_singleNotes_octave">
              <property name="currentIndex">
               <number>4</number>
              </property>
@@ -548,51 +895,64 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_20">
            <item>
-            <widget class="QLabel" name="label_9">
+            <widget class="QLabel" name="label_singleNotes_start">
              <property name="text">
               <string>Start</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_3"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_singleNotes_start"/>
            </item>
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_19">
            <item>
-            <widget class="QLabel" name="label_8">
+            <widget class="QLabel" name="label_singleNotes_lenght">
              <property name="text">
               <string>Lenght</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_4"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_singleNotes_length"/>
            </item>
           </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_18">
            <item>
-            <widget class="QLabel" name="label_7">
+            <widget class="QLabel" name="label_singleNotes_volume">
              <property name="text">
               <string>Volume</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_5"/>
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_singleNotes_volume"/>
            </item>
           </layout>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_14">
+          <widget class="QPushButton" name="pushButton_singleNotes_addNote">
            <property name="text">
             <string>Add Note</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>
@@ -606,7 +966,26 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_11">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_singleNotes_noteList"/>
+          <widget class="QScrollArea" name="scrollArea_singleNotes_noteList">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_6">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>457</width>
+              <height>606</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_21">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_singleNotes_noteList"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -678,6 +1057,97 @@
          <widget class="QDial" name="dial_4"/>
         </item>
        </layout>
+      </widget>
+      <widget class="QScrollArea" name="scrollArea">
+       <property name="geometry">
+        <rect>
+         <x>70</x>
+         <y>170</y>
+         <width>181</width>
+         <height>151</height>
+        </rect>
+       </property>
+       <property name="widgetResizable">
+        <bool>true</bool>
+       </property>
+       <widget class="QWidget" name="scrollAreaWidgetContents">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>215</width>
+          <height>407</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_13">
+         <item>
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>GroupBox</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_14">
+            <item>
+             <layout class="QFormLayout" name="formLayout">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>TextLabel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="comboBox"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="comboBox_2"/>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>TextLabel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1">
+               <widget class="QComboBox" name="comboBox_3"/>
+              </item>
+              <item row="10" column="1">
+               <widget class="QComboBox" name="comboBox_4"/>
+              </item>
+              <item row="6" column="1">
+               <widget class="QComboBox" name="comboBox_5"/>
+              </item>
+              <item row="2" column="1">
+               <widget class="QComboBox" name="comboBox_6"/>
+              </item>
+              <item row="5" column="1">
+               <widget class="QComboBox" name="comboBox_7"/>
+              </item>
+              <item row="7" column="1">
+               <widget class="QComboBox" name="comboBox_8"/>
+              </item>
+              <item row="3" column="1">
+               <widget class="QComboBox" name="comboBox_9"/>
+              </item>
+              <item row="6" column="0">
+               <widget class="QComboBox" name="comboBox_10"/>
+              </item>
+              <item row="8" column="1">
+               <widget class="QComboBox" name="comboBox_11"/>
+              </item>
+              <item row="9" column="1">
+               <widget class="QComboBox" name="comboBox_12"/>
+              </item>
+              <item row="4" column="1">
+               <widget class="QComboBox" name="comboBox_13"/>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </widget>
