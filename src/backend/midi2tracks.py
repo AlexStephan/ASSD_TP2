@@ -1,3 +1,4 @@
+from src.backend.tracks.track import Track,TrackGroup
 from enum import Enum
 import array
 
@@ -25,7 +26,7 @@ class Midi2Tracks(object):
         # de lo contrario
         self.state = STATE.LOADED
 
-    def get_array_of_tracks(self) -> list:
+    def get_array_of_tracks(self) -> TrackGroup:
         print("Midi2Tracks: get_array_of_tracks")
         # NOTA: recordar que la list a devolver debe ser una
         # lista de "track"

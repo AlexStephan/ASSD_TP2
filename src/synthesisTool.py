@@ -1,7 +1,7 @@
 from Lib.random import random, seed
 
 # Qt Modules
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QWidget
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QFileDialog,QWidget, QGridLayout,QPushButton, QApplication, QLabel, QCheckBox,QFileDialog
@@ -40,6 +40,12 @@ class SynthesisTool(QWidget,Ui_Form):
         self.setWindowTitle("TP GRUPAL 1 - Sampleo - ASSD")
         self.setWindowIcon(QtGui.QIcon('py.png'))
 
+        self.synthesis_timer = QTimer()
+        self.synthesis_timer.timeout.connect(self.__CB_synthesis_timer_step)
+
+        self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
+        self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
+
         self.pushButton_synthesize_loadFile.clicked.connect(self.test)
         self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
@@ -52,6 +58,15 @@ class SynthesisTool(QWidget,Ui_Form):
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
         self.__CB_radioButton_selectNoteByFrequency()
+
+    def __CB_synthesis_timer_step(self):
+        print("Synthesis timer step!")
+
+    def __CB_synthesis_timer_play_pause(self):
+        print("Synthesis timer play pause!")
+
+    def __CB_synthesis_timer_stop(self):
+        print("Synthesis timer stop")
 
     def __CB_radioButton_selectNoteByFrequency(self):
         checked = self.radioButton_singleNotes_selectNoteByFrequency.isChecked()
