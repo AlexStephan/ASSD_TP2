@@ -33,6 +33,9 @@ from sympy import I
 import math
 import os
 
+# my modules!!!
+from src.backend.midi2tracks import Midi2Tracks
+
 class SynthesisTool(QWidget,Ui_Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,13 +43,15 @@ class SynthesisTool(QWidget,Ui_Form):
         self.setWindowTitle("TP GRUPAL 1 - Sampleo - ASSD")
         self.setWindowIcon(QtGui.QIcon('py.png'))
 
+        self.__init_objects()
+
         self.synthesis_timer = QTimer()
         self.synthesis_timer.timeout.connect(self.__CB_synthesis_timer_step)
 
         self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
         self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
 
-        self.pushButton_synthesize_loadFile.clicked.connect(self.test)
+        self.pushButton_synthesize_loadFile.clicked.connect(self.test_midi)
         self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
@@ -54,6 +59,9 @@ class SynthesisTool(QWidget,Ui_Form):
         self.initIcons()
 
         self.__setCallbacks()
+
+    def __init_objects(self):
+        self.midi2tracks = Midi2Tracks()
 
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
@@ -198,6 +206,10 @@ class SynthesisTool(QWidget,Ui_Form):
         new_radioButton.setObjectName("RadioButton_"+newFrameName)
         new_HLayout.addWidget(new_radioButton)
         self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
+
+    def test_midi(self):
+        self.midi2tracks.
+        return
 
     def test(self):
         print("test")

@@ -1,6 +1,6 @@
 from src.backend.effects.effect_list import EFFECT
 from src.backend.audio_tracks.audio_block import AudioBlock
-from typing import List, Tuple
+from typing import List
 
 # Por qué no le agregué estados esta vez, a diferencia de synthesis_template?
 # no lo se. Supongo que quiero q la aplicacion de los efectos sea mas directa
@@ -31,7 +31,7 @@ class EffectTemplate(object):
 
 
 EffectConfig = List
-EffectAndConfig = Tuple[EffectTemplate, EffectConfig]
+EffectAndConfig = List[EffectTemplate, EffectConfig]
 
 EffectsForTrack = List[EffectAndConfig]
 AllEffects = List[EffectsForTrack]
