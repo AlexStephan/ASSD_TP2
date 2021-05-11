@@ -5,3 +5,4 @@ class INSTRUMENT(Enum):
     # cambiar cuando se cuenten con instrumentos ya programados
     GUITAR = 0
     PIANO = 1
+
