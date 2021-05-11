@@ -33,8 +33,20 @@ from sympy import I
 import math
 import os
 
+# !!!
+import sounddevice as sd
+
 # my modules!!!
 from src.backend.midi2tracks import Midi2Tracks
+from src.backend.audio_tracks.audio_track import AudioTrack
+
+from resources.testing_code.audio_loader import AudioLoader
+from src.backend.saver.audio_saver import AudioSaver
+#from resources.testing_code.player_test import callback_sound_test
+
+global test_audio_track
+global position_in_audio
+
 
 class SynthesisTool(QWidget,Ui_Form):
     def __init__(self, *args, **kwargs):
@@ -51,7 +63,14 @@ class SynthesisTool(QWidget,Ui_Form):
         self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
         self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
 
-        self.pushButton_synthesize_loadFile.clicked.connect(self.test_midi)
+        self.audio_loader = AudioLoader()
+        self.audio_saver = AudioSaver()
+        global test_audio_track
+        test_audio_track = AudioTrack()
+        self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
+        global position_in_audio
+        position_in_audio = 0
+        self.pushButton_synthesize_loadFile.clicked.connect(self.test_sound)
         self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
@@ -207,6 +226,26 @@ class SynthesisTool(QWidget,Ui_Form):
         new_HLayout.addWidget(new_radioButton)
         self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
 
+    def test_sound(self):
+        global test_audio_track
+        global position_in_audio
+        self.output_stream.stop()
+
+        position_in_audio = 0
+        is_ok,samplerate,audio_track_group=self.audio_loader.load_wav_file(".\\resources\\wav_files\\Level Music 1.wav")
+
+        print("is_ok = {}".format(is_ok))
+        print("samplerate = {}".format(samplerate))
+        print("number of channels = {}".format(audio_track_group.shape[1]))
+        print("length = {} samples, or {} secs".format(audio_track_group.shape[0],(audio_track_group.shape[0])/samplerate))
+        test_audio_track = AudioTrack()
+        test_audio_track.content = audio_track_group
+        #test_audio_track.content.reshape(audio_track_group.shape[0])
+        print(test_audio_track)
+
+        self.audio_saver.save_wav_file(test_audio_track, ".\\resources\\wav_files\\Level Music 1_copied.wav")
+        self.output_stream.start()
+
     def test_midi(self):
         self.midi2tracks.load_midi_file("resources\\midi_files\\Concierto-De-Aranjuez.mid")
         valid = self.midi2tracks.is_valid()
@@ -314,3 +353,10 @@ class SynthesisTool(QWidget,Ui_Form):
         #     self.pushButton_test2.deleteLater()
         #     self.pushButton_test2 = None
 
+
+    def __callback_sound_test(self,outdata: np.ndarray, frames: int, time, status):
+        global position_in_audio
+        global test_audio_track
+        outdata[:] = test_audio_track.content[position_in_audio:(position_in_audio+frames)]
+        position_in_audio = position_in_audio+frames
+        print(f"frames = {frames}")
