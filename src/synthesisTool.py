@@ -208,7 +208,21 @@ class SynthesisTool(QWidget,Ui_Form):
         self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
 
     def test_midi(self):
-        self.midi2tracks.
+        self.midi2tracks.load_midi_file("resources\\midi_files\\Concierto-De-Aranjuez.mid")
+        valid = self.midi2tracks.is_valid()
+        print(valid)
+        if valid:
+            tracks = self.midi2tracks.get_array_of_tracks()
+            for n,channel in enumerate(tracks):
+                print("\n\n\nCHANNEL {}\n".format(n))
+                for note in channel:
+                    print("Note:")
+                    print("Start = {}".format(note.start))
+                    print("End = {}".format(note.end))
+                    print("Velocity = {}".format(note.velocity))
+                    print("Number = {}".format(note.number))
+                    print("Frequency = {}".format(note.frequency))
+                    print("")
         return
 
     def test(self):
