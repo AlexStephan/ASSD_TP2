@@ -83,10 +83,11 @@ for n, channel in enumerate(tracks):
 
 guitar = PhysicalModellingSynthesis()
 guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
-aux = guitar.audio_track.content
-m = abs(max(max(aux), min(aux),key=abs))
+aux = guitar.audio_track
+m = abs(max(max(aux.content), min(aux.content),key=abs))
 norm = (2**15)/m
-aux_norm = [x * norm for x in aux]
+aux_norm = AudioTrack
+aux_norm.content = [x * norm for x in aux.content]
 
 file = AudioSaver()
-file.save_wav_file(aux_norm,"Test_Guitar")
+file.save_wav_file(aux,"Test_Guitar")
