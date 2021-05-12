@@ -90,4 +90,4 @@ aux_norm = AudioTrack
 aux_norm.content = [x * norm for x in aux.content]
 
 file = AudioSaver()
-file.save_wav_file(aux,"Test_Guitar")
+file.save_wav_file(aux_norm,"Test_Guitar.wav")
