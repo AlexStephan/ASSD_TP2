@@ -70,7 +70,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
         global position_in_audio
         position_in_audio = 0
-        self.pushButton_synthesize_loadFile.clicked.connect(self.test_sound)
+        self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
         self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
@@ -81,6 +81,8 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __init_objects(self):
         self.midi2tracks = Midi2Tracks()
+
+        self.errorBox = QtWidgets.QMessageBox()
 
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
@@ -353,10 +355,27 @@ class SynthesisTool(QWidget,Ui_Form):
         #     self.pushButton_test2.deleteLater()
         #     self.pushButton_test2 = None
 
-
     def __callback_sound_test(self,outdata: np.ndarray, frames: int, time, status):
         global position_in_audio
         global test_audio_track
         outdata[:] = test_audio_track.content[position_in_audio:(position_in_audio+frames)]
         position_in_audio = position_in_audio+frames
         print(f"frames = {frames}")
+
+    def __CB_open_midi_file(self):
+        filename = QFileDialog.getOpenFileName(self,"Select MIDI file",'c:\\',"MIDI file (*.mid);;MIDI file (*.midi)")
+        print(filename)
+        if filename[0]!= "":
+            self.Midi2Tracks.load_midi_file(filename[0])
+
+            if:
+
+            else:
+                self.__error_message("Couldn't open file!")
+
+
+    def __error_message(self, description:str):
+        self.errorBox.setWindowTitle("Error")
+        self.errorBox.setIcon(self.errorBox.Information)
+        self.errorBox.setText(description)
+        self.errorBox.exec()
