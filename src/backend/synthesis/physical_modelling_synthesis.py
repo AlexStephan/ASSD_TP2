@@ -13,17 +13,18 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
     def synthesize_audio_track(self, track: Track, instrument: INSTRUMENT):
         super().synthesize_audio_track(track, instrument)
         self.audio_track.content = [0]*len(self.track)
+        aux = [0]*len(self.track)
         self.state = STATE.ERROR
         if instrument == INSTRUMENT.GUITAR:
             for i in range(len(self.track)):
-                self.__karplus_guitar(i)
+               aux[i] = self.__karplus_guitar(i)
             self.state = STATE.LOADED
 
         elif instrument == INSTRUMENT.DRUM:
             for i in range(len(self.track)):
-                self.__karplus_drum(i, 0.5, 2)
+                aux[i] = self.__karplus_drum(i, 0.5, 2)
             self.state = STATE.LOADED
-
+        self.audio_track.content = [item for sublist in aux for item in sublist]
 
     def __karplus_guitar(self,i):
         fs = 8e3
@@ -41,7 +42,7 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
             else:
                 sample_k = 0.5 * rl * y[k-l-2] + 0.5 * rl * (a+1) * y[k-l-1] + 0.5 * a * rl * y[k-l] - a * y[k-1]
             y.append(sample_k)
-        self.audio_track.content[i] = y
+        return y
 
 
     def __karplus_drum(self,i,b,s):
@@ -64,7 +65,7 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
                 else:
                     sample_k = p * 0.5 * rl * (y[k - l] + y[k - l - 1])
             y.append(sample_k)
-        self.audio_track.content[i] = y
+        return y
 
 fs =44.1e3
 midi = Midi2Tracks()
@@ -82,10 +83,10 @@ for n, channel in enumerate(tracks):
 
 guitar = PhysicalModellingSynthesis()
 guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
-x = guitar.audio_track.content
-m = abs(max(max(max(x)), min(min(x)),key=abs))
-x_norm = x*int(((2**15)/m))
-
+aux = guitar.audio_track.content
+m = abs(max(max(aux), min(aux),key=abs))
+norm = (2**15)/m
+aux_norm = [x * norm for x in aux]
 
 file = AudioSaver()
-file.save_wav_file(x_norm,"Test_Guitar")
+file.save_wav_file(aux_norm,"Test_Guitar")
