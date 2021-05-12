@@ -2,6 +2,7 @@ from src.backend.instruments.instrument_list import INSTRUMENT
 from src.backend.tracks.track import Track
 from src.backend.audio_tracks.audio_track import AudioTrack
 from src.backend.synthesis.synthesis_template import SynthesisTemplate, STATE
+from src.backend.midi2tracks import Midi2Tracks
 
 import numpy as np
 
@@ -11,20 +12,20 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
 
     def synthesize_audio_track(self, track: Track, instrument: INSTRUMENT):
         super().synthesize_audio_track(track, instrument)
-        self.track = track
+        # self.track = track
         self.state = STATE.ERROR
-        if(instrument == INSTRUMENT.GUITAR):
+        if instrument == INSTRUMENT.GUITAR:
             for i in range(len(self.track)):
-                self.karplus_guitar(i)
+                self.__karplus_guitar(i)
             self.state = STATE.LOADED
 
-        elif(instrument == INSTRUMENT.DRUM):
+        elif instrument == INSTRUMENT.DRUM:
             for i in range(len(self.track)):
-                self.karplus_drum(i, 0.5, 2)
+                self.__karplus_drum(i, 0.5, 2)
             self.state = STATE.LOADED
 
 
-    def karplus_guitar(self,i):
+    def __karplus_guitar(self,i):
         fs = 8e3
         length = self.track[i].end-self.track[i].start
         n = np.linspace(0, length, int(fs * length))
@@ -43,9 +44,8 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
         self.audio_track[i] = y
 
 
-
-    def karplus_drum(self,i,b,s):
-        fs = 44.1e3
+    def __karplus_drum(self,i,b,s):
+        fs = 20e3
         length = self.track[i].end-self.track[i].start
         n = np.linspace(0, length, int(fs * length))
         l = int(fs/self.track[i].frequency-0.5)
@@ -65,3 +65,20 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
                     sample_k = p * 0.5 * rl * (y[k - l] + y[k - l - 1])
             y.append(sample_k)
         self.audio_track[i] = y
+
+
+midi = Midi2Tracks()
+midi.load_midi_file("resources\\midi_files\\Concierto-De-Aranjuez.mid")
+tracks = midi.get_array_of_tracks()
+for n, channel in enumerate(tracks):
+    print("\n\n\nCHANNEL {}\n".format(n))
+    for note in channel:
+        print("Note:")
+        print("Start = {}".format(note.start))
+        print("End = {}".format(note.end))
+        print("Velocity = {}".format(note.velocity))
+        print("Number = {}".format(note.number))
+        print("Frequency = {}".format(note.frequency))
+
+guitar = PhysicalModellingSynthesis()
+guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
