@@ -3,7 +3,7 @@ from src.backend.tracks.track import Track
 from src.backend.audio_tracks.audio_track import AudioTrack
 from src.backend.synthesis.synthesis_template import SynthesisTemplate, STATE
 from src.backend.midi2tracks import Midi2Tracks
-
+from src.backend.saver.audio_saver import AudioSaver
 import numpy as np
 
 class PhysicalModellingSynthesis(SynthesisTemplate):
@@ -12,7 +12,7 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
 
     def synthesize_audio_track(self, track: Track, instrument: INSTRUMENT):
         super().synthesize_audio_track(track, instrument)
-        # self.track = track
+        self.audio_track.content = [0]*len(self.track)
         self.state = STATE.ERROR
         if instrument == INSTRUMENT.GUITAR:
             for i in range(len(self.track)):
@@ -41,7 +41,7 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
             else:
                 sample_k = 0.5 * rl * y[k-l-2] + 0.5 * rl * (a+1) * y[k-l-1] + 0.5 * a * rl * y[k-l] - a * y[k-1]
             y.append(sample_k)
-        self.audio_track[i] = y
+        self.audio_track.content[i] = y
 
 
     def __karplus_drum(self,i,b,s):
@@ -64,11 +64,11 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
                 else:
                     sample_k = p * 0.5 * rl * (y[k - l] + y[k - l - 1])
             y.append(sample_k)
-        self.audio_track[i] = y
+        self.audio_track.content[i] = y
 
-
+fs =44.1e3
 midi = Midi2Tracks()
-midi.load_midi_file("resources\\midi_files\\Concierto-De-Aranjuez.mid")
+midi.load_midi_file("..\\..\\..\\resources\\midi_files\\Concierto-De-Aranjuez.mid")
 tracks = midi.get_array_of_tracks()
 for n, channel in enumerate(tracks):
     print("\n\n\nCHANNEL {}\n".format(n))
@@ -82,3 +82,10 @@ for n, channel in enumerate(tracks):
 
 guitar = PhysicalModellingSynthesis()
 guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
+x = guitar.audio_track.content
+m = abs(max(max(max(x)), min(min(x)),key=abs))
+x_norm = x*int(((2**15)/m))
+
+
+file = AudioSaver()
+file.save_wav_file(x_norm,"Test_Guitar")
