@@ -12,7 +12,7 @@ class AudioSaver(object):
         # Intentar guardar el track de audio como .wav
         # Si salio bien, devolver True, sino, devolver False
         try:
-            write(filename, sample_rate, audio_track.content.astype(np.int16))
+            write(filename, sample_rate, np.int16(audio_track.content))#.astype(np.int16))
         except:
             print("ERROR!!! AudioSaver coudn't save wav file!!!")
             return False
