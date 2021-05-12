@@ -365,11 +365,9 @@ class SynthesisTool(QWidget,Ui_Form):
     def __CB_open_midi_file(self):
         filename = QFileDialog.getOpenFileName(self,"Select MIDI file",'c:\\',"MIDI file (*.mid);;MIDI file (*.midi)")
         print(filename)
-        if filename[0]!= "":
-            self.Midi2Tracks.load_midi_file(filename[0])
-
-            if:
-
+        if filename[0] != "":
+            if self.midi2tracks.load_midi_file(filename[0]):
+                print("yahoo")
             else:
                 self.__error_message("Couldn't open file!")
 

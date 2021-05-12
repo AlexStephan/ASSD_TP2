@@ -15,7 +15,7 @@ class SynthesisTemplate(object):
     def __init__(self):
         print("SynthesisTemplate created!")
         self.state = STATE.EMPTY
-        self.track = Track()
+        self.track = []
         self.instrument = None
         self.audio_track = AudioTrack()
 
