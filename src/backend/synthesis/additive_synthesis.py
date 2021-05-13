@@ -4,19 +4,50 @@ from src.backend.audio_tracks.audio_track import AudioTrack
 from src.backend.synthesis.synthesis_template import SynthesisTemplate, STATE
 
 import numpy as np
+import math
 import scipy as sp
 import librosa
 
 
 def butter_bandpass(lowcut, highcut, Fs, order=10):
+    """Gathering of SOS of bandpass filter
+            Args:
+                lowcut (float): lowest frequency at with bandpass gain is -3dB
+                highcut (float): highest frequency at with bandpass gain is -3dB
+                Fs (float): sampling frequency
+            Returns:
+                sos (ndarray): Second Order sections representations of the IIR filter
+    """
     sos = sp.signal.butter(order, [lowcut, highcut], btype='band', analog=False, output='sos', fs=Fs)
     return sos
 
 
-def butter_bandpass_filter(data, lowcut, highcut, Fs, order=10):
+def butter_bandpass_filter(x, lowcut, highcut, Fs, order=10):
+    """Application of bandpass filter on signal
+                Args:
+                    x (ndarray): Signal to bandpass
+                    lowcut (float): lowest frequency at with bandpass gain is -3dB
+                    highcut (float): highest frequency at with bandpass gain is -3dB
+                    Fs (float): sampling frequency
+                Returns:
+                    y (ndarray): Signal after applying bandpass filter
+        """
     sos = butter_bandpass(lowcut, highcut, Fs, order=order)
-    y = sp.signal.sosfilt(sos, data)
+    y = sp.signal.sosfilt(sos, x)
     return y
+
+
+def find_nearest(array, value):
+    """Function to get closest value from array
+                Args:
+                    array (ndarray): array of values to analyze
+                    value (float): value to find closest number in array
+                Returns:
+                    array[index] (int): Index of closest value found in array
+    """
+    array = np.asarray(array)
+    index = (np.abs(array - value)).argmin()
+    return array[index]
 
 
 def compute_adsr(x, len_A, len_D, len_S, len_R, A0, kA0, alpha):
@@ -43,60 +74,98 @@ def compute_adsr(x, len_A, len_D, len_S, len_R, A0, kA0, alpha):
     return curve_ADSR
 
 
-def compute_envelope(x, win_len_sec, Fs):
-    """Computation of a signal's envelopes
+def extract_partial(x, nOfPartial, Fs, fundFreq):
+    """Isolation of a signal's partial and Extraction of its Magnitude Envelope
     Args:
         x (np.ndarray): Signal (waveform) to be analyzed
-        win_len_sec (float): Length (seconds) of the window
+        nOfPartial (int): Harmonic multiplier of Fundamental Frequency
         Fs (scalar): Sampling rate
-
-    Returns:
-        env (np.ndarray): Magnitude envelope
-        env_upper (np.ndarray): Upper envelope
-        env_lower (np.ndarray): Lower envelope
-    """
-    win_len_half = round(win_len_sec * Fs * 0.5)  # Guardo la mitad del largo de ventana para poder moverla
-    N = x.shape[0]  # Guardo el largo de la dimension tiempo de la señal ingresada
-    env = np.zeros(N)  # Creo un ndarray con ceros para la envolvente en amplitud
-    for i in range(N):
-        i_start = max(0, i - win_len_half)  # Comienzo de la ventana
-        i_end = min(N, i + win_len_half)  # Fin de la ventana
-        env[i] = np.amax(np.abs(x)[i_start:i_end])  # Obtengo el maximo del modulo de la señal en la ventana
-    return env
-
-
-# EXAMPLE: Fs=44100, musicPath="C:\Users\Tobi\OneDrive\Desktop\ITBA\2021 1Q\ASSD\music.wav", win_len_sec=0.01
-# x,Fs = librosa.load(musicPath, sr=Fs)
-# compute_envelope(x, win_len_sec, Fs)
-
-
-def extract_partial(x, n_of_partial, Fs, fundFreq):
-    """Extraction and Isolation of a signal's partial
-    Args:
-        x (np.ndarray): Signal (waveform) to be analyzed
-        n_of_partial (int): Harmonic multiplier of fundamental frequency
-        Fs (scalar): Sampling rate
-        fundFreq (float): Fundamental frequency of note
 
     Returns:
         partial (np.ndarray): Partial signal (waveform)
     """
-    partialFreq = fundFreq * n_of_partial
-    lowcut = partialFreq - 10 * n_of_partial
-    highcut = partialFreq + 10 * n_of_partial
-    partial = butter_bandpass_filter(x, lowcut, highcut, Fs)
-    return partial
+    partialFreq = fundFreq * nOfPartial
+    print(nOfPartial)
+    lowcut = partialFreq - partialFreq/20
+    highcut = partialFreq + partialFreq/20
+    if highcut < Fs/2:
+        partial = butter_bandpass_filter(x, lowcut, highcut, Fs)
+        analytic_partial = sp.signal.hilbert(partial)
+        partial_envelope = np.abs(analytic_partial)
+        np.save(str(int(round(fundFreq))) + 'PianoPartial' + str(nOfPartial) + '.npy', partial_envelope)
+        return partial_envelope
+    else:
+        return
 
 
 class AdditiveSynthesis(SynthesisTemplate):
     def __init__(self):
         super().__init__()
+        self.Fs = 44100 # Frecuencia de sampleo
+        self.note_frequencies = [65.41, 130.81, 261.63, 523.25, 1046.50] # Frecuencias de los parciales cargados
+        self.note_frequencies_round = [65, 131, 262, 523, 1046] # Frecuencias redondeadas(para acceder al archivo)
+        self.song = [] # Array representando la cancion
+
+    def synthesize_note(self, note):
+        """Synthetization of a Single Midi Note
+        Args:
+            note (Note): Note object to synthesize
+        Returns:
+            Nothing
+        """
+        freq_used = find_nearest(self.note_frequencies, note.frequency) # Agarro como frecuencia la mas cercana de las cargadas
+        if freq_used > note.frequency: # Si la que agarre es mayor, voy a la mas cercana menor (menos distorsion)
+            freq_used = self.note_frequencies[self.note_frequencies.index(freq_used) - 1]
+        nearest_round = find_nearest(self.note_frequencies_round, freq_used) # Ademas agarro la redondeada para cargar los archivos
+        partials_sum = 0 # Inicializo la variable de suma de parciales
+        n_of_partials = 35 # Numero de parciales cargados en memoria
+        if freq_used == 1046.5: # Si la frecuencia elegida fue C6, tengo menos parciales (limite por Fs=44100)
+            n_of_partials = 20
+        for i in range(n_of_partials): # Recorro todos los parciales
+            partial_i = np.load(
+                'C:\\Users\\Tobi\\PycharmProjects\\ASSD_TP2\\src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
+                    nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
+            factor_of_stretch = ((note.end - note.start) * self.Fs) / len(partial_i) # Veo por cuanto lo debo estirar o comprimir (segun el tiempo de la nota)
+            if factor_of_stretch == 0: # Si ocurre esto la nota no tiene duracion(para evitar errores)
+                return
+            partial_domain = np.linspace(0, 1, len(partial_i)) # Obtengo un dominio lineal del parcial cargado
+            stretched_domain = np.linspace(0, 1, int(round(len(partial_i) * factor_of_stretch))) # Obtengo el dominio lineal equivalente del parcial estirado
+            stretched_partial_i = np.interp(stretched_domain, partial_domain, partial_i) # Interpolo para realizar el estiramiento/la compresion
+            time_domain = np.arange(len(stretched_partial_i)) / self.Fs # Paso del dominio discreto al continuo en el tiempo para los senos
+            partials_sum = partials_sum + stretched_partial_i * np.sin(2 * (i + 1) * np.pi * freq_used * time_domain) # Multiplico la envolvente del parcial por su seno correspondiente
+
+        n_of_semitones = math.log(note.frequency/freq_used, 2**(1/12)) # Calculo la distancia en semitonos de la nota a sintonizar y la nota cargada en memoria
+        partials_sum = librosa.effects.pitch_shift(partials_sum, self.Fs, n_of_semitones) # Acerco la frecuencia de la nota cargada a la que se debe sintonizar
+
+        for i in range(int(math.floor((note.end - note.start) * self.Fs))): # Recorro en la cancion el rango de la nota
+            current_index = int(math.floor(note.start * self.Fs) + i) # Index para simplificar el recorrido
+            self.song[current_index] = self.song[current_index] + note.velocity * partials_sum[i] # Sumo en las posiciones correspondientes el resultado de la suma de los parciales por la velocity de la nota
+        return
 
     def synthesize_audio_track(self, track: Track, instrument: INSTRUMENT):
+        """Synthetization of a Single Midi Note
+                Args:
+                    track (Track): Track object with the Notes to synthesize
+                    instrument (INSTRUMENT): Instrument to synthesize (Only PIANO for now)
+                Returns:
+                    Nothing
+                """
         super().synthesize_audio_track(track, instrument)
-        # Analizar si el instrumento escogido es compatible con este sintetizador
-        # y generar el audio track
-        # si no pudo hacerlo:
-        #   self.state = STATE.ERROR
-        # de lo contrario
-        self.state = STATE.LOADED
+        if self.instrument != PIANO: # Si no quiero sintetizar un piano da error
+            self.state = STATE.ERROR
+        else:
+            song_end = 0 # Inicializo la variable que me indica el final de la cancion
+            for i in track:
+                if i.end > song_end: # Obtengo el final de la cancion viendo que nota finaliza ultima
+                    song_end = i.end
+            self.song = np.zeros(int(math.ceil(song_end * self.Fs))) # Inicializo el arreglo de la cancion con ceros
+
+            for i in track: # Sintetizo todas las notas del track dado en la cancion
+                self.synthesize_note(self, i)
+
+            max_velocity = 0
+            for i in range(len(self.song)): # Calculo el volumen maximo de la cancion en un instante
+                if self.song[i] > max_velocity:
+                    max_velocity = self.song[i]
+            self.song = self.song/max_velocity # Normalizo la cancion segun su volumen maximo
+            self.state = STATE.LOADED # Indico que termine la carga de la cancion
