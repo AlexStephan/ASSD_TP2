@@ -56,6 +56,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.setWindowIcon(QtGui.QIcon('py.png'))
 
         self.__init_objects()
+        self.__setCallbacks()
 
         self.synthesis_timer = QTimer()
         self.synthesis_timer.timeout.connect(self.__CB_synthesis_timer_step)
@@ -70,14 +71,12 @@ class SynthesisTool(QWidget,Ui_Form):
         self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
         global position_in_audio
         position_in_audio = 0
-        self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
+
         self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
 
         self.initIcons()
-
-        self.__setCallbacks()
 
     def __init_objects(self):
         self.midi2tracks = Midi2Tracks()
@@ -87,6 +86,8 @@ class SynthesisTool(QWidget,Ui_Form):
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
         self.__CB_radioButton_selectNoteByFrequency()
+
+        self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
