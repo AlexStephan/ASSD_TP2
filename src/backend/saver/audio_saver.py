@@ -14,7 +14,8 @@ class AudioSaver(object):
         try:
             max = np.amax(np.abs(audio_track.content))
             #if max > (2**15)-1:
-            audio_track.content = np.multiply(audio_track.content, ((2**15)-1)/max)
+            if max != 0:
+                audio_track.content = np.multiply(audio_track.content, ((2**15)-1)/max)
             write(filename, sample_rate, np.int16(audio_track.content))#.astype(np.int16))
         except:
             print("ERROR!!! AudioSaver coudn't save wav file!!!")

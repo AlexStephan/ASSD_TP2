@@ -988,7 +988,9 @@ class SynthesisTool(QWidget,Ui_Form):
             self.sample_synth.synthesize_audio_track(track,instrument)
             return self.sample_synth.get_audio_track()
         else:
-            return AudioTrack()
+            r = AudioTrack()
+            r.content = np.array([0])
+            return r
 
     def __get_instrument_selected(self,index:int)->INSTRUMENT:
         try:
