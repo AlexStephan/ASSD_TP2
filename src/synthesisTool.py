@@ -556,7 +556,7 @@ class SynthesisTool(QWidget,Ui_Form):
         max_lenght = np.amax(lenght)
 
         mix = np.zeros(max_lenght)
-        for i,audiotrack in self.audiotrackgroup:
+        for i,audiotrack in enumerate(self.audiotrackgroup):
             partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
             weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
             mix = mix + weighted
