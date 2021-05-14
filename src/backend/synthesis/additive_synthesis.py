@@ -170,5 +170,5 @@ class AdditiveSynthesis(SynthesisTemplate):
             for i in range(len(self.song)): # Calculo el volumen maximo de la cancion en un instante
                 if self.song[i] > max_velocity:
                     max_velocity = self.song[i]
-            self.song = self.song/max_velocity # Normalizo la cancion segun su volumen maximo
+            self.audio_track.content = self.song/max_velocity # Normalizo la cancion segun su volumen maximo
             self.state = STATE.LOADED # Indico que termine la carga de la cancion
