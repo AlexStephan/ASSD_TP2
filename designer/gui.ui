@@ -440,46 +440,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_20">
              <item>
-              <layout class="QVBoxLayout" name="verticalLayout_spectrogram_trackList">
-               <item>
-                <widget class="QFrame" name="frame_5">
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>45</height>
-                  </size>
-                 </property>
-                 <property name="frameShape">
-                  <enum>QFrame::StyledPanel</enum>
-                 </property>
-                 <property name="frameShadow">
-                  <enum>QFrame::Raised</enum>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_10">
-                  <item>
-                   <widget class="QLabel" name="label_10">
-                    <property name="text">
-                     <string>TextLabel</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButton_2">
-                    <property name="maximumSize">
-                     <size>
-                      <width>16</width>
-                      <height>16</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-              </layout>
+              <layout class="QVBoxLayout" name="verticalLayout_spectrogram_trackList"/>
              </item>
             </layout>
            </widget>
@@ -1314,6 +1275,50 @@
             <string>list2</string>
            </property>
           </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QFrame" name="frame_5">
+       <property name="geometry">
+        <rect>
+         <x>450</x>
+         <y>120</y>
+         <width>172</width>
+         <height>45</height>
+        </rect>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>45</height>
+        </size>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioButton_2">
+          <property name="maximumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
          </widget>
         </item>
        </layout>

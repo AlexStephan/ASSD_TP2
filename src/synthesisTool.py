@@ -99,6 +99,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.errorBox = QtWidgets.QMessageBox()
 
         self.track_frames = []
+        self.track_frames_spectrogram = []
 
         self.additive_synth = AdditiveSynthesis()
         self.physical_synth = PhysicalModellingSynthesis()
@@ -110,6 +111,17 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.audio_saver = AudioSaver()
 
+        self.__init_graphs()
+
+    def __init_graphs(self):
+        self.figure_spectrum = Figure()
+        self.canvas_spectrum = FigureCanvas(self.figure_spectrum)
+        self.index_spectrum = self.stackedWidget_spectrogram.addWidget(self.canvas_spectrum)
+        self.stackedWidget_spectrogram.setCurrentIndex(self.index_spectrum)
+        self.toolbar_spectrum = NavigationToolbar(self.canvas_spectrum,self)
+        self.horizontalLayout_spectrogram_plotSettings.addWidget(self.toolbar_spectrum)
+        self.axis_spectrum = self.figure_spectrum.add_subplot()
+
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
         self.__CB_radioButton_selectNoteByFrequency()
@@ -117,6 +129,9 @@ class SynthesisTool(QWidget,Ui_Form):
         self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
         self.pushButton_synthesize_synthesize.clicked.connect(self.__CB_synthesize)
         self.pushButton_synthesize_save.clicked.connect(self.__CB_save)
+
+        self.pushButton_spectrogram_selectAll.clicked.connect(self.__CB_select_all_spectrogram)
+        self.pushButton_spectrogram_deselectAll.clicked.connect(self.__CB_deselect_all_spectrogram)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
@@ -135,7 +150,6 @@ class SynthesisTool(QWidget,Ui_Form):
         self.comboBox_singleNotes_note.setVisible(not checked)
         self.label_singleNotes_octave.setVisible(not checked)
         self.comboBox_singleNotes_octave.setVisible(not checked)
-
 
     def initIcons(self):
         scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -392,6 +406,36 @@ class SynthesisTool(QWidget,Ui_Form):
         position_in_audio = position_in_audio+frames
         print(f"frames = {frames}")
 
+    def __CB_plot_spectrogram(self):
+        selected = []
+        for i,trackframe in enumerate(self.track_frames_spectrogram):
+            if trackframe[3].isChecked():
+                selected.append(i)
+        if len(selected) == 0:
+            self.__error_message("Select at least 1 track to plot")
+        else:
+            lengths = []
+            for i in selected:
+                lengths.append(len(self.audiotrackgroup[i].content))
+            max_lenght = max(lengths)
+
+            mix = np.zeros(max_lenght)
+            for i in selected:
+                audiotrack = self.audiotrackgroup[i]
+                partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
+                weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
+                mix = mix + weighted
+            # TODO
+
+
+    def __CB_select_all_spectrogram(self):
+        for trackframe in self.track_frames_spectrogram:
+            trackframe[3].setChecked(True)
+
+    def __CB_deselect_all_spectrogram(self):
+        for trackframe in self.track_frames_spectrogram:
+            trackframe[3].setChecked(False)
+
     def __CB_open_midi_file(self):
         filename = QFileDialog.getOpenFileName(self,"Select MIDI file",'c:\\',"MIDI file (*.mid);;MIDI file (*.midi)")
         print(filename)
@@ -407,7 +451,23 @@ class SynthesisTool(QWidget,Ui_Form):
     def __delete_old_tracks_frames(self):
         for trackframe in self.track_frames:
             self.__delete_single_track_frame_in_synthesis(trackframe)
+        for trackframe in self.track_frames_spectrogram:
+            self.__delete_single_track_frame_in_spectrogram(trackframe)
         self.track_frames = []
+
+    def __delete_single_track_frame_in_spectrogram(self,trackframe:list):
+        [old_frame, old_HLayout, old_label, old_radioButton] = trackframe
+
+        old_HLayout.removeWidget(old_radioButton)
+        old_radioButton.deleteLater()
+
+        old_HLayout.removeWidget(old_label)
+        old_label.deleteLater()
+
+        old_HLayout.deleteLater()
+
+        self.verticalLayout_spectrogram_trackList.removeWidget(old_frame)
+        old_frame.deleteLater()
 
     def __delete_single_track_frame_in_synthesis(self,trackframe:list):
         [old_frame,old_VLayout,old_HLayout,
@@ -440,7 +500,34 @@ class SynthesisTool(QWidget,Ui_Form):
         self.trackgroup = self.midi2tracks.get_array_of_tracks()
         for track in range(len(self.trackgroup)):
             self.track_frames.append(self.__create_single_track_frame_in_synthesis(track+1))
+            self.track_frames_spectrogram.append(self.__create_single_track_frame_in_spectrogram(track+1))
         return
+
+    def __create_single_track_frame_in_spectrogram(self, track_number: int) -> list:
+        new_frame_name = f"NewFrame_{track_number}"
+
+        new_frame = QtWidgets.QFrame(self.tab_synthesis)
+        new_frame.setMaximumSize(QtCore.QSize(200,45))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(new_frame_name)
+
+        new_HLayout = QtWidgets.QHBoxLayout(new_frame)
+        new_HLayout.setObjectName("HLayout_"+new_frame_name)
+
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_"+new_frame_name)
+        new_label.setText("Track {0}".format(track_number))
+        new_HLayout.addWidget(new_label)
+
+        new_radioButton = QtWidgets.QRadioButton(new_frame)
+        new_radioButton.setObjectName("RadioButton_"+new_frame_name)
+        new_radioButton.setText("")
+        new_HLayout.addWidget(new_radioButton)
+
+        self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
+
+        return [new_frame,new_HLayout,new_label,new_radioButton]
 
     def __create_single_track_frame_in_synthesis(self, track_number: int) -> list:
         new_frame_name = f"NewFrame_{track_number}"
@@ -511,6 +598,9 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_synthesize_synthesize.setDisabled(not loaded)
         self.pushButton_synthesize_save.setDisabled(not synthesized)
+        self.pushButton_spectrogram_selectAll.setDisabled(not synthesized)
+        self.pushButton_spectrogram_deselectAll.setDisabled(not synthesized)
+        self.pushButton_spectrogram_plot.setDisabled(not synthesized)
 
     def __CB_synthesize(self):
         if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
