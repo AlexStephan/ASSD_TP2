@@ -34,7 +34,7 @@ import math
 import os
 
 # !!!
-import sounddevice as sd
+#import sounddevice as sd
 
 # my modules!!!
 from src.backend.tracks.track import Track,TrackGroup
@@ -42,7 +42,7 @@ from src.backend.tracks.track import Track,TrackGroup
 from src.backend.midi2tracks import Midi2Tracks
 from src.backend.audio_tracks.audio_track import AudioTrack
 
-from resources.testing_code.audio_loader import AudioLoader
+from resources.testing_code.audio_loader import load_wav_file
 from src.backend.saver.audio_saver import AudioSaver
 #from resources.testing_code.player_test import callback_sound_test
 
@@ -50,6 +50,7 @@ from src.backend.instruments.instrument_list import INSTRUMENT
 from src.backend.synthesis.synthesis_template import SynthesisTemplate
 from src.backend.synthesis.physical_modelling_synthesis import PhysicalModellingSynthesis
 from src.backend.synthesis.additive_synthesis import AdditiveSynthesis
+from src.backend.synthesis.sample_based_synthesis import SampleBasedSynthesis
 
 global test_audio_track
 global position_in_audio
@@ -78,11 +79,11 @@ class SynthesisTool(QWidget,Ui_Form):
         self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
         self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
 
-        self.audio_loader = AudioLoader()
-        self.audio_saver = AudioSaver()
+        #self.audio_loader = AudioLoader()
+        #self.audio_saver = AudioSaver()
         global test_audio_track
         test_audio_track = AudioTrack()
-        self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
+        #self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
         global position_in_audio
         position_in_audio = 0
 
@@ -101,10 +102,13 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.additive_synth = AdditiveSynthesis()
         self.physical_synth = PhysicalModellingSynthesis()
+        self.sample_synth = SampleBasedSynthesis()
 
         self.audiotrackgroup = []
 
         self.__change_state_synth(STATE_SYNTH.EMPTY)
+
+        self.audio_saver = AudioSaver()
 
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
@@ -112,6 +116,7 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
         self.pushButton_synthesize_synthesize.clicked.connect(self.__CB_synthesize)
+        self.pushButton_synthesize_save.clicked.connect(self.__CB_save)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
@@ -259,7 +264,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.output_stream.stop()
 
         position_in_audio = 0
-        is_ok,samplerate,audio_track_group=self.audio_loader.load_wav_file(".\\resources\\wav_files\\Level Music 1.wav")
+        is_ok,samplerate,audio_track_group= load_wav_file(".\\resources\\wav_files\\Level Music 1.wav")
 
         print("is_ok = {}".format(is_ok))
         print("samplerate = {}".format(samplerate))
@@ -474,8 +479,8 @@ class SynthesisTool(QWidget,Ui_Form):
         new_HSlider = QtWidgets.QSlider(new_frame)
         new_HSlider.setOrientation(QtCore.Qt.Horizontal)
         new_HSlider.setObjectName("Slider_"+new_frame_name)
-        new_HSlider.setRange(0,99)
-        new_HSlider.setValue(99)
+        new_HSlider.setRange(0,127)
+        new_HSlider.setValue(127)
         new_VLayout.addWidget(new_HSlider)
 
         new_comboBox = QtWidgets.QComboBox(new_frame)
@@ -516,15 +521,29 @@ class SynthesisTool(QWidget,Ui_Form):
         else:
             self.__error_message("Synthesize is not currently available")
 
+    def __CB_save(self):
+        if self.state_synth == STATE_SYNTH.SYNTHESIZED:
+            filename = QFileDialog.getSaveFileName(self,"Save WAV file",'c:\\',"WAV file (*.wav)")
+            try:
+                mix = self.__get_unfiltered_mix()
+                self.audio_saver.save_wav_file(mix,filename[0])
+            except:
+                self.__error_message("Coudln't save file!")
+        else:
+            self.__error_message("Save is not currently available")
+
     def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
         print("__synthesize_handler")
         print(instrument.name)
-        if instrument == INSTRUMENT.PIANO or instrument == INSTRUMENT.DRUM:
+        if instrument == INSTRUMENT.GUITAR or instrument == INSTRUMENT.DRUM:
             self.physical_synth.synthesize_audio_track(track,instrument)
             return self.physical_synth.get_audio_track()
-        elif instrument == INSTRUMENT.GUITAR:
+        elif instrument == INSTRUMENT.PIANO:
             self.additive_synth.synthesize_audio_track(track,instrument)
             return self.additive_synth.get_audio_track()
+        elif instrument == INSTRUMENT.PIANO_2:
+            self.sample_synth.synthesize_audio_track(track,instrument)
+            return self.sample_synth.get_audio_track()
         else:
             return AudioTrack()
 
@@ -534,3 +553,28 @@ class SynthesisTool(QWidget,Ui_Form):
         except:
             self.__error_message("Invalid track index specified!")
             return INSTRUMENT.NONE
+
+    def __get_unfiltered_mix(self) -> AudioTrack:
+        lenght = []
+        for audiotrack in self.audiotrackgroup:
+            lenght.append(len(audiotrack.content))
+        max_lenght = np.amax(lenght)
+
+        mix = np.zeros(max_lenght)
+        for i,audiotrack in enumerate(self.audiotrackgroup):
+            partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
+            weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
+            mix = mix + weighted
+        audio_mix = AudioTrack()
+        audio_mix.content = mix
+        return audio_mix
+
+    def __get_velocity_selected(self,index:int) -> int:
+        try:
+            velocity = 0
+            if not self.track_frames[index][5].isChecked():
+                velocity = self.track_frames[index][6].value()
+            return velocity
+        except:
+            self.__error_message("Invalid track index specified!")
+            return 0

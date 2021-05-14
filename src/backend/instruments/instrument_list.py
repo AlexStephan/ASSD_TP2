@@ -7,3 +7,4 @@ class INSTRUMENT(Enum):
     GUITAR = 1
     PIANO = 2
     DRUM = 3
+    PIANO_2 = 4
