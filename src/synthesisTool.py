@@ -35,7 +35,7 @@ import os
 from matplotlib.mlab import window_hanning,window_none
 
 # !!!
-#import sounddevice as sd
+import sounddevice as sd
 
 # my modules!!!
 from src.backend.tracks.track import Track,TrackGroup
@@ -65,8 +65,8 @@ class STATE_SYNTH(Enum):
     EMPTY = 0
     LOADED = 1
     SYNTHESIZED = 2
-    ERROR = 3
-
+    PLAYING = 3
+    ERROR = 4
 
 class WINDOW_SELECT(Enum):
     NONE = 0
@@ -87,19 +87,15 @@ class SynthesisTool(QWidget,Ui_Form):
         self.__init_objects()
         self.__setCallbacks()
 
-        self.synthesis_timer = QTimer()
-        self.synthesis_timer.timeout.connect(self.__CB_synthesis_timer_step)
-
-        self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
-        self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
-
+        #self.synthesis_timer = QTimer()
+        #self.synthesis_timer.timeout.connect(self.__CB_synthesis_timer_step)
         #self.audio_loader = AudioLoader()
         #self.audio_saver = AudioSaver()
-        global test_audio_track
-        test_audio_track = AudioTrack()
+        #global test_audio_track
+        #test_audio_track = AudioTrack()
         #self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
-        global position_in_audio
-        position_in_audio = 0
+        #global position_in_audio
+        #position_in_audio = 0
 
         #self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
@@ -127,6 +123,12 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.__init_graphs()
 
+        self.output_stream = sd.OutputStream(channels=1, callback=self.__callback_sound_player, blocksize=1024,
+                                             dtype='int16')
+
+        self.unfiltered_mix = np.array([])
+        self.current_position = 0
+
     def __init_graphs(self):
         self.figure_spectrum = Figure()
         self.canvas_spectrum = FigureCanvas(self.figure_spectrum)
@@ -149,11 +151,20 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_spectrogram_plot.clicked.connect(self.__CB_plot_spectrogram)
 
-    def __CB_synthesis_timer_step(self):
-        print("Synthesis timer step!")
+        self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
+        self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
+
+    #def __CB_synthesis_timer_step(self):
+    #    print("Synthesis timer step!")
 
     def __CB_synthesis_timer_play_pause(self):
         print("Synthesis timer play pause!")
+        unfiltered_mix = self.__get_unfiltered_mix().content
+        max = np.amax(np.abs(unfiltered_mix))
+        streaming_mix = np.multiply(unfiltered_mix, ((2 ** 15) - 1) / max)
+
+        self.unfiltered_mix = np.array(streaming_mix)
+        self.output_stream.start()
 
     def __CB_synthesis_timer_stop(self):
         print("Synthesis timer stop")
@@ -415,12 +426,25 @@ class SynthesisTool(QWidget,Ui_Form):
         #     self.pushButton_test2.deleteLater()
         #     self.pushButton_test2 = None
 
-    def __callback_sound_test(self,outdata: np.ndarray, frames: int, time, status):
-        global position_in_audio
-        global test_audio_track
-        outdata[:] = test_audio_track.content[position_in_audio:(position_in_audio+frames)]
-        position_in_audio = position_in_audio+frames
-        print(f"frames = {frames}")
+    def __callback_sound_player(self,outdata: np.ndarray, frames: int, time, status):
+        #global position_in_audio
+        #global test_audio_track
+
+        #outdata[:] = test_audio_track.content[position_in_audio:(position_in_audio+frames)]
+        #position_in_audio = position_in_audio+frames
+        #print(f"frames = {frames}")
+        if self.current_position >= len(self.unfiltered_mix):
+            self.output_stream.stop()
+            #self.output_stream.close()
+            print("STOPPED!")
+            self.current_position = 0
+        elif self.current_position + frames - 1 >= len(self.unfiltered_mix):
+            outdata[:] = np.int16(np.reshape(np.pad(self.unfiltered_mix[self.current_position:],
+                                (0,self.current_position + frames-len(self.unfiltered_mix))),(frames,1)))
+            self.current_position = len(self.unfiltered_mix)
+        else:
+            outdata[:] = np.int16(np.reshape(self.unfiltered_mix[self.current_position:self.current_position+frames],(frames,1)))
+            self.current_position = self.current_position + frames
 
     def __CB_plot_spectrogram(self):
         selected = []
@@ -642,14 +666,31 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __change_state_synth(self,state: STATE_SYNTH):
         self.state_synth = state
-        loaded = (self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED)
-        synthesized = self.state_synth == STATE_SYNTH.SYNTHESIZED
+        loaded = (self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED or
+                  self.state_synth == STATE_SYNTH.PLAYING)
+        synthesized = self.state_synth == STATE_SYNTH.SYNTHESIZED or self.state_synth == STATE_SYNTH.PLAYING
+        playing = self.state_synth == STATE_SYNTH.PLAYING
 
         self.pushButton_synthesize_synthesize.setDisabled(not loaded)
         self.pushButton_synthesize_save.setDisabled(not synthesized)
         self.pushButton_spectrogram_selectAll.setDisabled(not synthesized)
         self.pushButton_spectrogram_deselectAll.setDisabled(not synthesized)
         self.pushButton_spectrogram_plot.setDisabled(not synthesized)
+
+        self.pushButton_synthesize_play_pause.setDisabled(not synthesized)
+        self.pushButton_synthesize_stop.setDisabled(not synthesized)
+        self.pushButton_synthesize_back.setDisabled(not synthesized)
+        self.pushButton_synthesize_foward.setDisabled(not synthesized)
+
+        scriptDir = os.path.dirname(os.path.realpath(__file__))
+        if playing:
+            self.pushButton_synthesize_play_pause.setIcon(
+                QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-pause.png"))
+        else:
+            self.pushButton_synthesize_play_pause.setIcon(
+                QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-play.png"))
+
+
 
     def __CB_synthesize(self):
         if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
