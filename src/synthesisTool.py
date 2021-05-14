@@ -262,7 +262,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.output_stream.stop()
 
         position_in_audio = 0
-        is_ok,samplerate,audio_track_group=self.audio_loader.load_wav_file(".\\resources\\wav_files\\Level Music 1.wav")
+        is_ok,samplerate,audio_track_group= load_wav_file(".\\resources\\wav_files\\Level Music 1.wav")
 
         print("is_ok = {}".format(is_ok))
         print("samplerate = {}".format(samplerate))
