@@ -533,7 +533,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QDoubleSpinBox" name="doubleSpinBox_spectrogram_plot">
+            <widget class="QDoubleSpinBox" name="doubleSpinBox_spectrogram_duration">
              <property name="minimumSize">
               <size>
                <width>115</width>
@@ -572,7 +572,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox">
+            <widget class="QSpinBox" name="spinBox_spectrogram_NFFT">
              <property name="minimumSize">
               <size>
                <width>115</width>
@@ -620,7 +620,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QSpinBox" name="spinBox_2">
+            <widget class="QSpinBox" name="spinBox_spectrogram_overlap">
              <property name="minimumSize">
               <size>
                <width>115</width>
@@ -668,7 +668,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="comboBox_15">
+            <widget class="QComboBox" name="comboBox_spectrogram_window">
              <property name="minimumSize">
               <size>
                <width>115</width>

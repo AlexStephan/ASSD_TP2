@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 # Python Modules
 import numpy as np
@@ -32,6 +32,7 @@ from sympy import I
 # ?
 import math
 import os
+from matplotlib.mlab import window_hanning,window_none
 
 # !!!
 #import sounddevice as sd
@@ -52,6 +53,10 @@ from src.backend.synthesis.physical_modelling_synthesis import PhysicalModelling
 from src.backend.synthesis.additive_synthesis import AdditiveSynthesis
 from src.backend.synthesis.sample_based_synthesis import SampleBasedSynthesis
 
+from src.backend.spectrum.audiotrack2spectrum import blackman,bartlett,hamming,blackmanharris
+
+from src.backend.audio_tracks.audio_constants import sample_rate
+
 global test_audio_track
 global position_in_audio
 
@@ -61,6 +66,15 @@ class STATE_SYNTH(Enum):
     LOADED = 1
     SYNTHESIZED = 2
     ERROR = 3
+
+
+class WINDOW_SELECT(Enum):
+    NONE = 0
+    BARTLETT = 1
+    HANNING = 2
+    HAMMING = 3
+    BLACKMAN = 4
+    BLACKMAN_HARRIS = 5
 
 
 class SynthesisTool(QWidget,Ui_Form):
@@ -87,7 +101,7 @@ class SynthesisTool(QWidget,Ui_Form):
         global position_in_audio
         position_in_audio = 0
 
-        self.pushButton_spectrogram_plot.clicked.connect(self.test)
+        #self.pushButton_spectrogram_plot.clicked.connect(self.test)
 
         self.testingvar = 0
 
@@ -132,6 +146,8 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_spectrogram_selectAll.clicked.connect(self.__CB_select_all_spectrogram)
         self.pushButton_spectrogram_deselectAll.clicked.connect(self.__CB_deselect_all_spectrogram)
+
+        self.pushButton_spectrogram_plot.clicked.connect(self.__CB_plot_spectrogram)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
@@ -425,8 +441,39 @@ class SynthesisTool(QWidget,Ui_Form):
                 partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
                 weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
                 mix = mix + weighted
-            # TODO
 
+            NFFT,Fs,noverlap,window = self._get_spectrum_data()
+            self.__clear_spectrogram()
+            Pxx,freqs,bins,im = self.axis_spectrum.specgram(mix,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
+            self.canvas_spectrum.draw()
+
+    def _get_spectrum_data(self):
+        NFFT = self.spinBox_spectrogram_NFFT.value()
+        overlap = self.spinBox_spectrogram_overlap.value()
+        Fs = sample_rate
+        window_index = self.comboBox_spectrogram_window.currentIndex()
+        if window_index == WINDOW_SELECT.NONE.value:
+            window = window_none
+        elif window_index == WINDOW_SELECT.BARTLETT.value:
+            window = bartlett
+        elif window_index == WINDOW_SELECT.HANNING.value:
+            window = window_hanning
+        elif window_index == WINDOW_SELECT.HAMMING.value:
+            window = hamming
+        elif window_index == WINDOW_SELECT.BLACKMAN.value:
+            window = blackman
+        elif window_index == WINDOW_SELECT.BLACKMAN_HARRIS.value:
+            window = blackmanharris
+
+        return [NFFT,Fs,overlap,window]
+
+    def __clear_spectrogram(self):
+        self.axis_spectrum.clear()
+        self.axis_spectrum.grid()
+        self.canvas_spectrum.draw()
+        self.axis_spectrum.set_title("Spectrum Analysis")
+        self.axis_spectrum.set_xlabel("Time [s]")
+        self.axis_spectrum.set_ylabel("Frequency [Hz]")
 
     def __CB_select_all_spectrogram(self):
         for trackframe in self.track_frames_spectrogram:
@@ -454,6 +501,7 @@ class SynthesisTool(QWidget,Ui_Form):
         for trackframe in self.track_frames_spectrogram:
             self.__delete_single_track_frame_in_spectrogram(trackframe)
         self.track_frames = []
+        self.track_frames_spectrogram = []
 
     def __delete_single_track_frame_in_spectrogram(self,trackframe:list):
         [old_frame, old_HLayout, old_label, old_radioButton] = trackframe
@@ -607,7 +655,7 @@ class SynthesisTool(QWidget,Ui_Form):
             self.audiotrackgroup = []
             for i,track in enumerate(self.trackgroup):
                 self.audiotrackgroup.append(self.__synthesize_handler(track,self.__get_instrument_selected(i)))
-                self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
+            self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
         else:
             self.__error_message("Synthesize is not currently available")
 
@@ -653,7 +701,8 @@ class SynthesisTool(QWidget,Ui_Form):
         mix = np.zeros(max_lenght)
         for i,audiotrack in enumerate(self.audiotrackgroup):
             partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
-            weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
+            normalized = np.divide(partial,np.amax(np.abs(partial)))
+            weighted = np.multiply(normalized,self.__get_velocity_selected(i)/127)
             mix = mix + weighted
         audio_mix = AudioTrack()
         audio_mix.content = mix

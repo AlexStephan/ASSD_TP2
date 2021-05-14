@@ -26,10 +26,11 @@ def blackmanharris(a: list) -> list:
     return np.multiply(a,ss.blackmanharris(len(a)))
 
 
-class AudioTrack2Spectrum(object):
-    def __init__(self):
-        print("AudioTrack2Spectrum created!")
+def draw_spectrum(audio_track: AudioTrack, Fs: float, NFFT:int, noverlap: int, window: Callable, axis):
+    print("AudioTrack2Spectrum draw_spectrum")
+    Pxx,freqs,bins,im = axis.specgram(audio_track.content,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
 
-    def draw_spectrum(self, audio_track: AudioTrack, Fs: float, NFFT:int, noverlap: int, window: Callable, axis):
-        print("AudioTrack2Spectrum draw_spectrum")
-        Pxx,freqs,bins,im = axis.specgram(audio_track.content,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
+
+#class AudioTrack2Spectrum(object):
+#    def __init__(self):
+#        print("AudioTrack2Spectrum created!")
