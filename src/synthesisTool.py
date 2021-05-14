@@ -475,8 +475,8 @@ class SynthesisTool(QWidget,Ui_Form):
         new_HSlider = QtWidgets.QSlider(new_frame)
         new_HSlider.setOrientation(QtCore.Qt.Horizontal)
         new_HSlider.setObjectName("Slider_"+new_frame_name)
-        new_HSlider.setRange(0,99)
-        new_HSlider.setValue(99)
+        new_HSlider.setRange(0,127)
+        new_HSlider.setValue(127)
         new_VLayout.addWidget(new_HSlider)
 
         new_comboBox = QtWidgets.QComboBox(new_frame)
@@ -535,3 +535,13 @@ class SynthesisTool(QWidget,Ui_Form):
         except:
             self.__error_message("Invalid track index specified!")
             return INSTRUMENT.NONE
+
+    def __get_velocity_selected(self,index:int) -> int:
+        try:
+            velocity = 0
+            if not self.track_frames[index][5].isChecked():
+                velocity = self.track_frames[index][6].value()
+            return velocity
+        except:
+            self.__error_message("Invalid track index specified!")
+            return 0
