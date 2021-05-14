@@ -524,7 +524,7 @@ class SynthesisTool(QWidget,Ui_Form):
             filename = QFileDialog.getSaveFileName(self,"Save WAV file",'c:\\',"WAV file (*.wav)")
             try:
                 mix = self.__get_unfiltered_mix()
-                self.audio_saver.save_wav_file(mix,filename)
+                self.audio_saver.save_wav_file(mix,filename[0])
             except:
                 self.__error_message("Coudln't save file!")
         else:
