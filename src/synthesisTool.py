@@ -536,6 +536,15 @@ class SynthesisTool(QWidget,Ui_Form):
             self.__error_message("Invalid track index specified!")
             return INSTRUMENT.NONE
 
+    def __get_unfiltered_mix(self) -> AudioTrack:
+        lenght = []
+        for audiotrack in self.audiotrackgroup:
+            lenght.append(len(audiotrack.content))
+        max_lenght = np.amax(lenght)
+
+        mix = np.zeros(max_lenght)
+        return AudioTrack()
+
     def __get_velocity_selected(self,index:int) -> int:
         try:
             velocity = 0
