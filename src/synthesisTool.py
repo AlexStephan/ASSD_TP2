@@ -162,8 +162,8 @@ class SynthesisTool(QWidget,Ui_Form):
         self.axis_spectrum = self.figure_spectrum.add_subplot()
 
     def __setCallbacks(self):
-        self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
-        self.__CB_radioButton_selectNoteByFrequency()
+        #self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
+        #self.__CB_radioButton_selectNoteByFrequency()
 
         self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
         self.pushButton_synthesize_synthesize.clicked.connect(self.__CB_synthesize)
@@ -268,8 +268,8 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_synthesize_loadFile.setIcon(QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-file.png"))
 
-        self.pushButton_singleNotes_play.setIcon(QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-play.png"))
-        self.pushButton_singleNotes_trashcan.setIcon(QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-trashcan.png"))
+        #self.pushButton_singleNotes_play.setIcon(QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-play.png"))
+        #self.pushButton_singleNotes_trashcan.setIcon(QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-trashcan.png"))
 
         #self.pushButton_synthesize_foward.setDisabled(True)
 
@@ -550,11 +550,11 @@ class SynthesisTool(QWidget,Ui_Form):
             NFFT,Fs,noverlap,window = self._get_spectrum_data()
             self.__clear_spectrogram()
 
-            beggining = self.doubleSpinBox_spectrogram_intTime.value()*sample_rate
+            beggining = int(self.doubleSpinBox_spectrogram_intTime.value()*sample_rate)
             if self.doubleSpinBox_spectrogram_duration.value() == 0:
                 finalmix = np.array(mix[beggining:])
             else:
-                end = beggining + self.doubleSpinBox_spectrogram_duration.value()*sample_rate
+                end = int(beggining + self.doubleSpinBox_spectrogram_duration.value()*sample_rate)
                 finalmix = np.array(mix[beggining:end])
 
             Pxx,freqs,bins,im = self.axis_spectrum.specgram(finalmix,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
