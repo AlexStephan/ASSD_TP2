@@ -7,7 +7,7 @@ Ts = 1 / samples_per_sec
 
 
 class EFFECT(Enum):
-    # NOTA: el contenido actual es solo un placeholder
+    # NOTA: el contenido actual es solo un placeholder1234
     # cambiar cuando se cuenten con instrumentos ya programados
     DELAY = 0
     REVERBERATION = 1
