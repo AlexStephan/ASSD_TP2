@@ -121,7 +121,7 @@ class AdditiveSynthesis(SynthesisTemplate):
             n_of_partials = 20
         for i in range(n_of_partials): # Recorro todos los parciales
             partial_i = np.load(
-                'C:\\Users\\Tobi\\PycharmProjects\\ASSD_TP2\\src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
+                'src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
                     nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
             factor_of_stretch = ((note.end - note.start) * self.Fs) / len(partial_i) # Veo por cuanto lo debo estirar o comprimir (segun el tiempo de la nota)
             if factor_of_stretch == 0: # Si ocurre esto la nota no tiene duracion(para evitar errores)
