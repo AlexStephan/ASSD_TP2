@@ -114,8 +114,6 @@ class AdditiveSynthesis(SynthesisTemplate):
             Nothing
         """
         freq_used = find_nearest(self.note_frequencies, note.frequency) # Agarro como frecuencia la mas cercana de las cargadas
-        if freq_used > note.frequency: # Si la que agarre es mayor, voy a la mas cercana menor (menos distorsion)
-            freq_used = self.note_frequencies[self.note_frequencies.index(freq_used) - 1]
         nearest_round = find_nearest(self.note_frequencies_round, freq_used) # Ademas agarro la redondeada para cargar los archivos
         partials_sum = 0 # Inicializo la variable de suma de parciales
         n_of_partials = 35 # Numero de parciales cargados en memoria
