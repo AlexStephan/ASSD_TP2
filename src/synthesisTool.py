@@ -79,7 +79,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
 
         self.audio_loader = AudioLoader()
-        self.audio_saver = AudioSaver()
+        #self.audio_saver = AudioSaver()
         global test_audio_track
         test_audio_track = AudioTrack()
         self.output_stream = sd.OutputStream(channels=2,callback=self.__callback_sound_test,blocksize=1024,dtype='int16')#1024)
@@ -105,6 +105,8 @@ class SynthesisTool(QWidget,Ui_Form):
         self.audiotrackgroup = []
 
         self.__change_state_synth(STATE_SYNTH.EMPTY)
+
+        self.audio_saver = AudioSaver()
 
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
@@ -519,9 +521,13 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __CB_save(self):
         if self.state_synth == STATE_SYNTH.SYNTHESIZED:
-
+            filename = QFileDialog.getSaveFileName(self,"Save WAV file",'c:\\',"WAV file (*.wav)")
+            try:
+                self.sa
+            except:
+                self.__error_message("Coudln't save file!")
         else:
-
+            self.__error_message("Save is not currently available")
 
     def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
         print("__synthesize_handler")
