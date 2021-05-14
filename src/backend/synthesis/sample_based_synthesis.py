@@ -25,11 +25,12 @@ class SampleBasedSynthesis(SynthesisTemplate):
 
     def synthesize_audio_track(self, track: Track, instrument: INSTRUMENT):
         super().synthesize_audio_track(track, instrument)
+        local_instrument = self.global_instrument_to_local_instrument(instrument)
         self.state = STATE.LOADED
-        if instrument not in self.instruments:
+        if local_instrument not in self.instruments_array:
             self.state = STATE.ERROR
         else:
-            self.instrument = instrument
+            self.instrument = local_instrument
         self.track_len = len(track)
         while self.track_pos != self.track_len:
             self.note_freq = self.get_note_freq()
@@ -38,8 +39,8 @@ class SampleBasedSynthesis(SynthesisTemplate):
             self.note_vel = self.get_note_vel()
             self.synthesize()
 
-            for n in self.end - self.start:
-                self.audio_track[self.start + n] += self.synth_track[n]
+            for n in range(self.note_end - self.note_start):
+                self.audio_track[self.note_start + n] += self.synth_track[n]
                 n += 1
             self.track_pos += 1
 
@@ -79,10 +80,16 @@ class SampleBasedSynthesis(SynthesisTemplate):
         self.synth_track = self.time_scale()
 
     def set_sample_array(self):
-        fs,  self.sample_array = read('..\\wav_files\\' + self.instrument + '.wav', mmap=False)
+        fs,  self.sample_array = read('resources\\wav_files\\' + self.instrument +" 440Hz" + '.wav', mmap=False)
 
     def get_sample_freq(self):
         return self.sample_freq[self.instrument]
 
     def get_sample_duration(self):
         return len(self.sample_array)
+
+    def global_instrument_to_local_instrument(self,GLOBAL_INST:INSTRUMENT)->str:
+        if GLOBAL_INST == INSTRUMENT.PIANO_2:
+            return "Piano"
+        else:
+            return ""
