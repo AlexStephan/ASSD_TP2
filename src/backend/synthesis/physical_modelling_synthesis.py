@@ -5,6 +5,9 @@ from src.backend.synthesis.synthesis_template import SynthesisTemplate, STATE
 from src.backend.midi2tracks import Midi2Tracks
 from src.backend.saver.audio_saver import AudioSaver
 import numpy as np
+import itertools as iter
+
+fs = 44100
 
 class PhysicalModellingSynthesis(SynthesisTemplate):
     def __init__(self):
@@ -16,27 +19,44 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
         self.audio_track.content = [0]*len(self.track)
         aux = [0]*len(self.track)
         self.state = STATE.ERROR
+        t_end = 0
         if instrument == INSTRUMENT.GUITAR:
             for i in range(len(self.track)):
-               aux[i] = self.__karplus_guitar(i)
+                aux[i] = self.__karplus_guitar(i)
+                if t_end < track[i].end : t_end = track[i].end
             self.state = STATE.LOADED
+
+            final = [0] * fs * int(t_end)
+            for i in range(len(aux)):
+                N_start = int(track[i].start*fs)
+                note = np.pad(aux[i],(N_start,0))
+                final = [x + y for x, y in iter.zip_longest(final, note, fillvalue=0)]
+            self.audio_track.content = final
 
         elif instrument == INSTRUMENT.DRUM:
             for i in range(len(self.track)):
                 aux[i] = self.__karplus_drum(i, 0.5, 2)
+                if t_end < track[i].end: t_end = track[i].end
             self.state = STATE.LOADED
-        self.audio_track.content = [item for sublist in aux for item in sublist]
+
+            final = [0] * fs * int(t_end)
+            for i in range(len(aux)):
+                N_start = int(track[i].start * fs)
+                note = np.pad(aux[i], (N_start, 0))
+                final = [x + y for x, y in iter.zip_longest(final, note, fillvalue=0)]
+            self.audio_track.content = final
 
     def __karplus_guitar(self,i):
-        fs = 44.1e3
         length = self.track[i].end-self.track[i].start
         n = np.linspace(0, length, int(fs*length))
         l = int(fs/self.track[i].frequency-0.5)
         buff = (2 * np.random.randint(0, 2, l+2) - 1).astype(float)
 
-        #buff = self.__DC_block(l,buff,10) #DC Block
+        buff = self.__sound_box(l, buff) #Sound box
+        #buff = self.__DC_block(l,buff,self.track[i].frequency) #DC Block
 
-        y1 = self.__timbre_control(l,buff,10,200) #Timbre Control
+        y1 = self.__timbre_control(l,buff,8,180) #Timbre Control
+
 
         beta = fs/self.track[i].frequency - 0.5 - l
         rl = 0.9999**l
@@ -52,7 +72,6 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
 
 
     def __karplus_drum(self,i,b,s):
-        fs = 44.1e3
         length = self.track[i].end-self.track[i].start
         n = np.linspace(0, length, int(fs * length))
         l = int(fs/self.track[i].frequency-0.5)
@@ -72,6 +91,7 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
                     sample_k = p * 0.5 * rl * (y[k - l] + y[k - l - 1])
             y.append(sample_k)
         return y
+
 
     def __timbre_control(self, l, buff, times=5, fo=200):
         t = 1/abs(2*np.cos(2*np.pi*fo)+1)
@@ -94,9 +114,9 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
         return loop
 
     def __DC_block(self, l, buff,fo):
-        a0 = 1/(1+(np.pi*fo/10))
+        a0 = 1/(1+((np.pi*fo)/10))
         a1 = -a0
-        b1 = a0*(1-np.pi*fo/10)
+        b1 = a0*(1-(np.pi*fo)/10)
         y0 = []
         for k in range(l+2):
             if k < 1:
@@ -106,25 +126,39 @@ class PhysicalModellingSynthesis(SynthesisTemplate):
             y0.append(sample_k)
         return y0
 
+    def __sound_box(self,l, y,fo=180):
+        df = 20
+        R = 1 - (df * np.pi) / fs
+        a1 = 2 * R * np.cos(2 * np.pi * fo / fs)
+        a2 = R ** 2
+        box=[]
+        G = (np.sqrt(1 - 2 * R + R ** 2) * np.sqrt(1 - 2 * R * np.cos(8 * np.pi * fo / fs) + R ** 2)) / (
+                    2 * np.sqrt(2 - 2 * np.cos(4 * np.pi * fo / fs)))
+        for k in range(len(y)):
+            if k < l:
+                sample_k = G * y[k] - G * y[k + 2]
+            else:
+                sample_k = a1 * box[k - 1] - a2 * box[k - 2]
+            box.append(sample_k)
+        return box
 
-fs =44.1e3
-midi = Midi2Tracks()
-midi.load_midi_file("..\\..\\..\\resources\\midi_files\\Faded.mid")
-tracks = midi.get_array_of_tracks()
-for n, channel in enumerate(tracks):
-    print("\n\n\nCHANNEL {}\n".format(n))
-    for note in channel:
-        print("Note:")
-        print("Start = {}".format(note.start))
-        print("End = {}".format(note.end))
-        print("Velocity = {}".format(note.velocity))
-        print("Number = {}".format(note.number))
-        print("Frequency = {}".format(note.frequency))
 
 if __name__ == '__main__':
+    midi = Midi2Tracks()
+    midi.load_midi_file("..\\..\\..\\resources\\midi_files\\simple_chord.mid")
+    tracks = midi.get_array_of_tracks()
+    for n, channel in enumerate(tracks):
+        print("\n\n\nCHANNEL {}\n".format(n))
+        for note in channel:
+            print("Note:")
+            print("Start = {}".format(note.start))
+            print("End = {}".format(note.end))
+            print("Velocity = {}".format(note.velocity))
+            print("Number = {}".format(note.number))
+            print("Frequency = {}".format(note.frequency))
 
     guitar = PhysicalModellingSynthesis()
-    guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
+    guitar.synthesize_audio_track(tracks[0], INSTRUMENT.DRUM)
     aux = guitar.audio_track
     m = abs(max(max(aux.content), min(aux.content),key=abs))
     norm = (2**15)/m
@@ -132,4 +166,4 @@ if __name__ == '__main__':
     aux_norm.content = [x * norm for x in aux.content]
 
     file = AudioSaver()
-    file.save_wav_file(aux_norm,"Test_Guitar.wav")
+    file.save_wav_file(aux_norm,"Chord2.wav")
