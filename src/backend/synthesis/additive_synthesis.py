@@ -7,6 +7,7 @@ import numpy as np
 import math
 import scipy as sp
 import librosa
+import os
 
 
 def butter_bandpass(lowcut, highcut, Fs, order=10):
@@ -104,7 +105,7 @@ class AdditiveSynthesis(SynthesisTemplate):
         self.Fs = 44100 # Frecuencia de sampleo
         self.note_frequencies = [65.41, 130.81, 261.63, 523.25, 1046.50] # Frecuencias de los parciales cargados
         self.note_frequencies_round = [65, 131, 262, 523, 1046] # Frecuencias redondeadas(para acceder al archivo)
-        self.song = [] # Array representando la cancion
+        self.song = 0 # Array representando la cancion
 
     def synthesize_note(self, note):
         """Synthetization of a Single Midi Note
@@ -119,10 +120,11 @@ class AdditiveSynthesis(SynthesisTemplate):
         n_of_partials = 35 # Numero de parciales cargados en memoria
         if freq_used == 1046.5: # Si la frecuencia elegida fue C6, tengo menos parciales (limite por Fs=44100)
             n_of_partials = 20
+        path = os.path.dirname(os.path.abspath(__file__))
+        files_path = os.path.join(path, 'src\\backend\\synthesis\\PianoPartialsNPY')
+
         for i in range(n_of_partials): # Recorro todos los parciales
-            partial_i = np.load(
-                'src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
-                    nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
+            partial_i = np.load(files_path + str(nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
             factor_of_stretch = ((note.end - note.start) * self.Fs) / len(partial_i) # Veo por cuanto lo debo estirar o comprimir (segun el tiempo de la nota)
             if factor_of_stretch == 0: # Si ocurre esto la nota no tiene duracion(para evitar errores)
                 return
@@ -149,6 +151,7 @@ class AdditiveSynthesis(SynthesisTemplate):
                     Nothing
                 """
         super().synthesize_audio_track(track, instrument)
+
         if self.instrument != INSTRUMENT.PIANO: # Si no quiero sintetizar un piano da error
             self.state = STATE.ERROR
         else:
