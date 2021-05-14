@@ -151,7 +151,7 @@ class AdditiveSynthesis(SynthesisTemplate):
                     Nothing
                 """
         super().synthesize_audio_track(track, instrument)
-        if self.instrument != PIANO: # Si no quiero sintetizar un piano da error
+        if self.instrument != INSTRUMENT.PIANO: # Si no quiero sintetizar un piano da error
             self.state = STATE.ERROR
         else:
             song_end = 0 # Inicializo la variable que me indica el final de la cancion

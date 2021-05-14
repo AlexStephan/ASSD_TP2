@@ -511,16 +511,26 @@ class SynthesisTool(QWidget,Ui_Form):
         if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
             self.audiotrackgroup = []
             for i,track in enumerate(self.trackgroup):
-                self.audiotrackgroup.append(self.__synthesize_handler(track,))
+                self.audiotrackgroup.append(self.__synthesize_handler(track,self.__get_instrument_selected(i)))
+                self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
         else:
             self.__error_message("Synthesize is not currently available")
 
     def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
-        print("yo")
+        print("__synthesize_handler")
+        print(instrument.name)
+        if instrument == INSTRUMENT.PIANO or instrument == INSTRUMENT.DRUM:
+            self.physical_synth.synthesize_audio_track(track,instrument)
+            return self.physical_synth.get_audio_track()
+        elif instrument == INSTRUMENT.GUITAR:
+            self.additive_synth.synthesize_audio_track(track,instrument)
+            return self.additive_synth.get_audio_track()
+        else:
+            return AudioTrack()
 
     def __get_instrument_selected(self,index:int)->INSTRUMENT:
         try:
-            return INSTRUMENT.NONE
+            return INSTRUMENT(self.track_frames[index][7].currentIndex())
         except:
             self.__error_message("Invalid track index specified!")
             return INSTRUMENT.NONE
