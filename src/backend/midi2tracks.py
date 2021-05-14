@@ -1,6 +1,6 @@
 from src.backend.tracks.note import Note
-from src.backend.tracks.track import Track,TrackGroup
-from src.backend.tracks.channel import Channel,ChannelGroup
+from src.backend.tracks.track import Track, TrackGroup
+from src.backend.tracks.channel import Channel, ChannelGroup
 from enum import Enum
 from mido import MidiFile
 import array
@@ -27,7 +27,6 @@ class Midi2Tracks(object):
         self.current_time = 0  # en segs
         self.started_notes = list()
         self.finished_notes = list()
-
 
     def load_midi_file(self, file_name: str) -> bool:
         print("Midi2Tracks: load_midi_file: " + file_name)
@@ -77,7 +76,7 @@ class Midi2Tracks(object):
     def is_valid(self) -> bool:
         return self.state == STATE.LOADED
 
-    #def __note_number_to_frequency(self, note_number: int) -> float:  # resultado en Hz
+    # def __note_number_to_frequency(self, note_number: int) -> float:  # resultado en Hz
     #    return 440*pow(2,(note_number-69)/12)
 
     def __add_new_started_note(self, msg):
@@ -105,7 +104,7 @@ class Midi2Tracks(object):
 
         return
 
-    def __is_note_on_channel(self,note_number: int, channel: Channel) -> list: # bool, int(index)
+    def __is_note_on_channel(self, note_number: int, channel: Channel) -> list:  # bool, int(index)
         """
         :param note_number: número (int) que indetifica a la nota musical
         :param channel: canal donde buscar la nota musical
@@ -122,10 +121,10 @@ class Midi2Tracks(object):
                 index = i
                 break
 
-        return [is_on_channel,index]
+        return [is_on_channel, index]
 
     # comment
-    def __is_channel_on_list(self,channel_number: int, channel_group: ChannelGroup) -> list: # bool, Channel
+    def __is_channel_on_list(self, channel_number: int, channel_group: ChannelGroup) -> list:  # bool, Channel
         """
         :param channel_number: número (int) que indetifica al canal
         :param channel_group: self.started_notes o self.finished_notes
