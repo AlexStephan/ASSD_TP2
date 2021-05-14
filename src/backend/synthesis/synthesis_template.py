@@ -1,6 +1,7 @@
 from src.backend.instruments.instrument_list import INSTRUMENT
 from src.backend.tracks.track import Track
 from src.backend.audio_tracks.audio_track import AudioTrack
+import numpy as np
 
 from enum import Enum
 
@@ -26,7 +27,9 @@ class SynthesisTemplate(object):
 
     def get_audio_track(self) -> AudioTrack:
         if self.state == STATE.LOADED:
-            return self.audio_track
+            out = AudioTrack()
+            out.content = np.array(self.audio_track.content)
+            return out
         else:
             return AudioTrack()
 
