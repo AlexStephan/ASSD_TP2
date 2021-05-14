@@ -439,7 +439,8 @@ class SynthesisTool(QWidget,Ui_Form):
             for i in selected:
                 audiotrack = self.audiotrackgroup[i]
                 partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
-                weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
+                normalized = np.divide(partial, np.amax(np.abs(partial)))
+                weighted = np.multiply(normalized,self.__get_velocity_selected(i)/127)
                 mix = mix + weighted
 
             NFFT,Fs,noverlap,window = self._get_spectrum_data()
