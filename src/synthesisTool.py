@@ -517,6 +517,12 @@ class SynthesisTool(QWidget,Ui_Form):
         else:
             self.__error_message("Synthesize is not currently available")
 
+    def __CB_save(self):
+        if self.state_synth == STATE_SYNTH.SYNTHESIZED:
+
+        else:
+
+
     def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
         print("__synthesize_handler")
         print(instrument.name)
