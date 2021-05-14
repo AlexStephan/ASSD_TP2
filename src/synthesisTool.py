@@ -81,7 +81,7 @@ class WINDOW_SELECT(Enum):
 
 
 class EffectData(object):
-    def __init__(self,fun:Callable = None,var1 = None,var2 = None):
+    def __init__(self,fun:Callable = None,var1:list = None,var2:list = None):
         self.fun = fun
         self.var1 = var1
         self.var2 = var2
@@ -148,6 +148,9 @@ class SynthesisTool(QWidget,Ui_Form):
         self.aux_index = 0
 
         self.all_effects = []
+        self.current_visible_effects = []
+
+        self.selected_track = 0
 
     def __init_graphs(self):
         self.figure_spectrum = Figure()
@@ -680,7 +683,8 @@ class SynthesisTool(QWidget,Ui_Form):
         new_dialL = QtWidgets.QDial(new_frame)
         new_dialL.setObjectName("DialL"+new_frame_name)
         new_dialL.setRange(range1[0],range1[1])
-        new_dialL.setValue(value1)
+        new_dialL.setValue(value1[0])
+        new_dialL.valueChanged.connect(functools.partial(self.__CB_connection, value1, new_dialL.value()))
         new_leftVLayout.addWidget(new_dialL)
 
         new_lcdL = QtWidgets.QLCDNumber(new_frame)
@@ -701,7 +705,8 @@ class SynthesisTool(QWidget,Ui_Form):
         new_dialR = QtWidgets.QDial(new_frame)
         new_dialR.setObjectName("DialR"+new_frame_name)
         new_dialR.setRange(range2[0],range2[1])
-        new_dialR.setValue(value2)
+        new_dialR.setValue(value2[0])
+        new_dialR.valueChanged.connect(functools.partial(self.__CB_connection,value2,new_dialR.value()))
         new_rightVLayout.addWidget(new_dialR)
 
         new_lcdR = QtWidgets.QLCDNumber(new_frame)
@@ -738,6 +743,43 @@ class SynthesisTool(QWidget,Ui_Form):
         self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
 
         return [new_frame,new_HLayout,new_label,new_radioButton]
+
+    def __remove_single_effect_frame(self,trackframe:list):
+        [new_frame, new_VLayout, new_superiorHLayout, new_button, new_label,
+         new_inferiorHLayout,
+         new_leftVLayout, new_labelL, new_dialL, new_lcdL,
+         new_rightVLayout, new_labelR, new_dialR, new_lcdR] =trackframe
+
+        new_rightVLayout.removeWidget(new_lcdR)
+        new_lcdR.deleteLater()
+        new_rightVLayout.removeWidget(new_dialR)
+        new_dialR.deleteLater()
+        new_rightVLayout.removeWidget(new_labelR)
+        new_labelR.deleteLater()
+
+        new_rightVLayout.deleteLater()
+
+        new_leftVLayout.removeWidget(new_lcdL)
+        new_lcdL.deleteLater()
+        new_leftVLayout.removeWidget(new_dialL)
+        new_dialL.deleteLater()
+        new_leftVLayout.removeWidget(new_labelL)
+        new_labelL.deleteLater()
+
+        new_leftVLayout.deleteLater()
+
+        new_inferiorHLayout.deleteLater()
+
+        new_superiorHLayout.removeWidget(new_label)
+        new_label.deleteLater()
+        new_superiorHLayout.removeWidget(new_button)
+        new_button.deleteLater()
+
+        new_superiorHLayout.deleteLater()
+        new_VLayout.deleteLater()
+
+        self.verticalLayout_synthesis_effectList.removeWidget(new_frame)
+        new_frame.deleteLater()
 
     def __create_single_track_frame_in_synthesis(self, track_number: int) -> list:
         new_frame_name = f"NewFrame_{track_number}"
@@ -829,12 +871,26 @@ class SynthesisTool(QWidget,Ui_Form):
             self.pushButton_synthesize_play_pause.setIcon(
                 QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-play.png"))
 
-    def __CB_select_track_to_see_effects(self,track_numberint):
-        self.__clean_current_effect_frames()
-        self.__load_effect_frames(track_numberint)
+        for track_frame in self.track_frames:
+            track_frame[4].setDisabled(not synthesized)
+
+    def __CB_select_track_to_see_effects(self,track_number:int):
+        self.__clean_current_effect_frames() # TODO
+        self.__load_effect_frames(track_number) # 0 es principal!
+        self.selected_track = track_number
+
+    def __load_effect_frames(self, track_number: int):
+        for effect_data in self.all_effects[track_number]:
+            self.__create_single_effect_frame(effect_data[0],effect_data[1],effect_data[2])
+
+    def __clean_current_effect_frames(self):
+        for effect_frame in self.current_visible_effects:
+            self.__remove_single_effect_frame(effect_frame)
+        self.current_visible_effects = []
 
     def __CB_synthesize(self):
         if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
+            self.selected_track = 0
             self.audiotrackgroup = []
             for i,track in enumerate(self.trackgroup):
                 self.audiotrackgroup.append(self.__synthesize_handler(track,self.__get_instrument_selected(i)))
@@ -903,3 +959,6 @@ class SynthesisTool(QWidget,Ui_Form):
         except:
             self.__error_message("Invalid track index specified!")
             return 0
+
+    def __CB_connection(self,variable:list,new_value):
+        variable[0] = new_value
