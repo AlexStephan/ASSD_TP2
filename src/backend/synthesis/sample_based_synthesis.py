@@ -31,7 +31,13 @@ class SampleBasedSynthesis(SynthesisTemplate):
             self.state = STATE.ERROR
         else:
             self.instrument = local_instrument
+        self.set_sample_array()
+        self.track_pos=0
         self.track_len = len(track)
+
+        track_lenght = int(self.get_last_note_time() * 44100)
+        self.audio_track.content = np.zeros(track_lenght)
+
         while self.track_pos != self.track_len:
             self.note_freq = self.get_note_freq()
             self.note_start = int(self.get_note_start() * 44100)
@@ -40,22 +46,30 @@ class SampleBasedSynthesis(SynthesisTemplate):
             self.synthesize()
 
             for n in range(self.note_end - self.note_start):
-                self.audio_track[self.note_start + n] += self.synth_track[n]
-                n += 1
+                if self.note_start + n < track_lenght and n < len(self.synth_track):
+                    self.audio_track.content[self.note_start + n] += self.synth_track[n]
+                    n += 1
             self.track_pos += 1
+
+    def get_last_note_time(self):
+        end_times = []
+        for note in self.track:
+            end_times.append(note.end)
+        last_note_time = max(end_times)
+        return last_note_time
 
     def time_scale(self):
         duration_ratio = (self.note_end - self.note_start) / self.get_sample_duration()
-        if duration_ratio == 1:
-            return self.synth_track
-        return np.transpose(pytsmod.phase_vocoder(self.sample_array, duration_ratio))
+        #if duration_ratio == 1:
+        #    return self.synth_track
+        return np.transpose(pytsmod.phase_vocoder(self.synth_track, duration_ratio))
 
     def pitch_shift(self):
         note_freq = self.note_freq
         shift_factor = note_freq / self.get_sample_freq()
-        if shift_factor == 1:
-            return self.synth_track
-        return self.speedx(np.transpose(pytsmod.phase_vocoder(self.sample_array, shift_factor)), shift_factor)
+        #if shift_factor == 1:
+        #    return self.synth_track
+        return self.speedx(np.transpose(pytsmod.phase_vocoder(self.sample_array[:,0], shift_factor)), shift_factor)
 
     def speedx(self, sound_array, factor):                                # http://zulko.github.io/blog/2014/03/29/soundstretching-and-pitch-shifting-in-python/
         """ Multiplies the sound's speed by some `factor` """

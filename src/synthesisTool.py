@@ -34,7 +34,7 @@ import math
 import os
 
 # !!!
-import sounddevice as sd
+#import sounddevice as sd
 
 # my modules!!!
 from src.backend.tracks.track import Track,TrackGroup
