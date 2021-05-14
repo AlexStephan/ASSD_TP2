@@ -32,11 +32,12 @@ from sympy import I
 # ?
 import math
 import os
-from typing import Callable
+from typing import Callable,List
 from matplotlib.mlab import window_hanning,window_none
 
 # !!!
 import sounddevice as sd
+import functools
 
 # my modules!!!
 from src.backend.tracks.track import Track,TrackGroup
@@ -61,6 +62,7 @@ from src.backend.audio_tracks.audio_constants import sample_rate
 #global test_audio_track
 #global position_in_audio
 
+from src.backend.effects.effect_list import eco,simple_reverb,flanger
 
 class STATE_SYNTH(Enum):
     EMPTY = 0
@@ -76,6 +78,19 @@ class WINDOW_SELECT(Enum):
     HAMMING = 3
     BLACKMAN = 4
     BLACKMAN_HARRIS = 5
+
+
+class EffectData(object):
+    def __init__(self,fun:Callable = None,var1 = None,var2 = None):
+        self.fun = fun
+        self.var1 = var1
+        self.var2 = var2
+
+
+EffectsFromTrack = List[EffectData]
+
+
+AllEffects = List[EffectsFromTrack]
 
 
 class SynthesisTool(QWidget,Ui_Form):
@@ -131,6 +146,8 @@ class SynthesisTool(QWidget,Ui_Form):
         self.current_position = 0
 
         self.aux_index = 0
+
+        self.all_effects = []
 
     def __init_graphs(self):
         self.figure_spectrum = Figure()
@@ -594,7 +611,7 @@ class SynthesisTool(QWidget,Ui_Form):
             self.track_frames_spectrogram.append(self.__create_single_track_frame_in_spectrogram(track+1))
         return
 
-    def __create_single_effect_frame(self, fun: Callable):
+    def __create_single_effect_frame(self, fun: Callable, value1, value2) -> list:
         new_frame_name = f"NewFrameEffect_{self.aux_index}"
         self.aux_index = self.aux_index +1
 
@@ -618,17 +635,83 @@ class SynthesisTool(QWidget,Ui_Form):
         new_button.setText("X")
         new_superiorHLayout.addWidget(new_button)
 
-        if fun ==
+        if fun == eco:
+            label_text = "Eco"
+            param1 = "Delay (usec)"
+            range1 = [0,10000]
+            param2 = "Intensity (%)"
+            range2 = [0,100]
+        elif fun == simple_reverb:
+            label_text = "Simple Reverberation"
+            param1 = "Delay (usec)"
+            range1 = [0,10000]
+            param2 = "Intensity (%)"
+            range2 = [0,100]
+        else:
+            label_text = "Simple Reverberation"
+            param1 = "f0 (Hz)"
+            range1 = [0,10000]
+            param2 = "k (%)"
+            range2 = [0,100]
 
         new_label = QtWidgets.QLabel(new_frame)
         new_label.setObjectName("Label_"+new_frame_name)
-        new_label.setText("Track {0}".format(track_number))
-        new_HLayout.addWidget(new_label)
+        new_label.setText(label_text)
+        new_superiorHLayout.addWidget(new_label)
 
+        #
+        #
 
+        new_inferiorHLayout = QtWidgets.QHBoxLayout()
+        new_inferiorHLayout.setObjectName("Hi_" + new_frame_name)
+        new_VLayout.addLayout(new_inferiorHLayout)
 
+        #
 
+        new_leftVLayout = QtWidgets.QVBoxLayout()
+        new_leftVLayout.setObjectName("Left"+new_frame_name)
+        new_inferiorHLayout.addLayout(new_leftVLayout)
 
+        new_labelL = QtWidgets.QLabel(new_frame)
+        new_labelL.setObjectName("LabelL_"+new_frame_name)
+        new_labelL.setText(param1)
+        new_leftVLayout.addWidget(new_labelL)
+
+        new_dialL = QtWidgets.QDial(new_frame)
+        new_dialL.setObjectName("DialL"+new_frame_name)
+        new_dialL.setRange(range1[0],range1[1])
+        new_dialL.setValue(value1)
+        new_leftVLayout.addWidget(new_dialL)
+
+        new_lcdL = QtWidgets.QLCDNumber(new_frame)
+        new_lcdL.setObjectName("LCDL"+new_frame_name)
+        new_leftVLayout.addWidget(new_lcdL)
+
+        #
+
+        new_rightVLayout = QtWidgets.QVBoxLayout()
+        new_rightVLayout.setObjectName("Right"+new_frame_name)
+        new_inferiorHLayout.addLayout(new_rightVLayout)
+
+        new_labelR = QtWidgets.QLabel(new_frame)
+        new_labelR.setObjectName("LabelR_"+new_frame_name)
+        new_labelR.setText(param2)
+        new_rightVLayout.addWidget(new_labelR)
+
+        new_dialR = QtWidgets.QDial(new_frame)
+        new_dialR.setObjectName("DialR"+new_frame_name)
+        new_dialR.setRange(range2[0],range2[1])
+        new_dialR.setValue(value2)
+        new_rightVLayout.addWidget(new_dialR)
+
+        new_lcdR = QtWidgets.QLCDNumber(new_frame)
+        new_lcdR.setObjectName("LCDR"+new_frame_name)
+        new_rightVLayout.addWidget(new_lcdR)
+
+        return [new_frame, new_VLayout, new_superiorHLayout, new_button, new_label,
+                new_inferiorHLayout,
+                new_leftVLayout,new_labelL,new_dialL,new_lcdL,
+                new_rightVLayout,new_labelR,new_dialR,new_lcdR]
 
     def __create_single_track_frame_in_spectrogram(self, track_number: int) -> list:
         new_frame_name = f"NewFrame_{track_number}"
@@ -681,6 +764,7 @@ class SynthesisTool(QWidget,Ui_Form):
         new_button.setObjectName("Button_"+new_frame_name)
         new_button.setText("Select")
         new_HLayout.addWidget(new_button)
+        new_button.clicked.connect(functools.partial(self.__CB_select_track_to_see_effects,track_number))
         new_button.setDisabled(True)
 
         new_radioButton = QtWidgets.QRadioButton(new_frame)
@@ -745,7 +829,9 @@ class SynthesisTool(QWidget,Ui_Form):
             self.pushButton_synthesize_play_pause.setIcon(
                 QtGui.QIcon(scriptDir + os.path.sep + "..\\resources\\icons\\symbol-play.png"))
 
-
+    def __CB_select_track_to_see_effects(self,track_numberint):
+        self.__clean_current_effect_frames()
+        self.__load_effect_frames(track_numberint)
 
     def __CB_synthesize(self):
         if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
@@ -753,6 +839,9 @@ class SynthesisTool(QWidget,Ui_Form):
             for i,track in enumerate(self.trackgroup):
                 self.audiotrackgroup.append(self.__synthesize_handler(track,self.__get_instrument_selected(i)))
             self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
+            self.all_effects = []
+            for i in range(len(self.audiotrackgroup)+1):
+                self.all_effects.append([])
         else:
             self.__error_message("Synthesize is not currently available")
 
