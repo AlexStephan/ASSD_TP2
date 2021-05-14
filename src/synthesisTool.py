@@ -176,9 +176,50 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_synthesize_play_pause.clicked.connect(self.__CB_synthesis_timer_play_pause)
         self.pushButton_synthesize_stop.clicked.connect(self.__CB_synthesis_timer_stop)
+        self.pushButton_synthesize_back.clicked.connect(self.__CB_replay_back)
+        self.pushButton_synthesize_foward.clicked.connect(self.__CB_replay_forward)
+
+        self.comboBox_synthesize_selectEffectType.currentIndexChanged.connect(self.__CB_changed_effect_creator_selection)
+        self.pushButton_synthesize_addEffect.clicked.connect(self.__CB_add_effect)
 
     #def __CB_synthesis_timer_step(self):
     #    print("Synthesis timer step!")
+
+    def __CB_replay_forward(self):
+        if self.state_synth == STATE_SYNTH.SYNTHESIZED or self.state_synth == STATE_SYNTH.PLAYING:
+            if len(self.unfiltered_mix) >0:
+                self.current_position = self.current_position+sample_rate*5
+                if self.current_position > len(self.unfiltered_mix):
+                    self.current_position = len(self.unfiltered_mix)
+        else:
+            self.__error_message("Replay back and forward only available once synthesized")
+
+
+    def __CB_replay_back(self):
+        if self.state_synth == STATE_SYNTH.SYNTHESIZED or self.state_synth == STATE_SYNTH.PLAYING:
+            if len(self.unfiltered_mix) >0:
+                self.current_position = self.current_position-sample_rate*5
+                if self.current_position < 0:
+                    self.current_position = 0
+        else:
+            self.__error_message("Replay back and forward only available once synthesized")
+
+    def __CB_add_effect(self):
+        print("ADD EFFECT")
+        if self.comboBox_synthesize_selectEffectType.currentIndex() == 1:
+            fun = eco
+        elif self.comboBox_synthesize_selectEffectType.currentIndex() == 2:
+            fun = simple_reverb
+        elif self.comboBox_synthesize_selectEffectType.currentIndex() == 3:
+            fun = flanger
+        else:
+            self.__error_message("Invalid index at Add effect")
+            return
+        var1 = [0]
+        var2 = [0]
+        new_effect = EffectData(fun,var1,var2)
+        self.all_effects[self.selected_track].append(new_effect)
+        self.__CB_select_track_to_see_effects(self.selected_track)
 
     def __CB_synthesis_timer_play_pause(self):
         print("Synthesis timer play pause!")
@@ -195,6 +236,13 @@ class SynthesisTool(QWidget,Ui_Form):
             self.output_stream.stop()
         else:
             self.__error_message("Playing/Pausing not available until synthesization")
+
+    def __CB_changed_effect_creator_selection(self):
+        if self.comboBox_synthesize_selectEffectType.currentIndex() > 0:
+            self.pushButton_synthesize_addEffect.setDisabled(False)
+        else:
+            self.pushButton_synthesize_addEffect.setDisabled(True)
+
 
     def __CB_synthesis_timer_stop(self):
         print("Synthesis timer stop")
@@ -501,7 +549,15 @@ class SynthesisTool(QWidget,Ui_Form):
 
             NFFT,Fs,noverlap,window = self._get_spectrum_data()
             self.__clear_spectrogram()
-            Pxx,freqs,bins,im = self.axis_spectrum.specgram(mix,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
+
+            beggining = self.doubleSpinBox_spectrogram_intTime.value()*sample_rate
+            if self.doubleSpinBox_spectrogram_duration.value() == 0:
+                finalmix = np.array(mix[beggining:])
+            else:
+                end = beggining + self.doubleSpinBox_spectrogram_duration.value()*sample_rate
+                finalmix = np.array(mix[beggining:end])
+
+            Pxx,freqs,bins,im = self.axis_spectrum.specgram(finalmix,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
 
             #f, t, Sxx =ssignal.spectrogram(mix,sample_rate)
             #self.axis_spectrum.pcolormesh(t,f,Sxx)
@@ -633,8 +689,8 @@ class SynthesisTool(QWidget,Ui_Form):
 
         new_button = QtWidgets.QPushButton(new_frame)
         new_button.setObjectName("Button_"+new_frame_name)
-        new_button.setMaximumWidth(QtCore.QSize(24,24))
-        new_button.setMinimumWidth(QtCore.QSize(24, 24))
+        new_button.setMaximumSize(QtCore.QSize(24,24))
+        new_button.setMinimumSize(QtCore.QSize(24, 24))
         new_button.setText("X")
         new_superiorHLayout.addWidget(new_button)
 
@@ -689,6 +745,7 @@ class SynthesisTool(QWidget,Ui_Form):
 
         new_lcdL = QtWidgets.QLCDNumber(new_frame)
         new_lcdL.setObjectName("LCDL"+new_frame_name)
+        new_dialL.valueChanged.connect(functools.partial(self.__CB_dial_to_lcd,[new_lcdL],new_dialL.value()))
         new_leftVLayout.addWidget(new_lcdL)
 
         #
@@ -711,7 +768,10 @@ class SynthesisTool(QWidget,Ui_Form):
 
         new_lcdR = QtWidgets.QLCDNumber(new_frame)
         new_lcdR.setObjectName("LCDR"+new_frame_name)
+        new_dialR.valueChanged.connect(functools.partial(self.__CB_dial_to_lcd,[new_lcdR], new_dialR.value()))
         new_rightVLayout.addWidget(new_lcdR)
+
+        self.verticalLayout_synthesis_effectList.addWidget(new_frame)
 
         return [new_frame, new_VLayout, new_superiorHLayout, new_button, new_label,
                 new_inferiorHLayout,
@@ -863,6 +923,8 @@ class SynthesisTool(QWidget,Ui_Form):
         self.pushButton_synthesize_back.setDisabled(not synthesized)
         self.pushButton_synthesize_foward.setDisabled(not synthesized)
 
+        self.comboBox_synthesize_selectEffectType.setDisabled(not synthesized)
+
         scriptDir = os.path.dirname(os.path.realpath(__file__))
         if playing:
             self.pushButton_synthesize_play_pause.setIcon(
@@ -878,10 +940,11 @@ class SynthesisTool(QWidget,Ui_Form):
         self.__clean_current_effect_frames() #
         self.__load_effect_frames(track_number) # 0 es principal!
         self.selected_track = track_number
+        print(f"Selected Track {track_number}")
 
     def __load_effect_frames(self, track_number: int):
         for effect_data in self.all_effects[track_number]:
-            self.__create_single_effect_frame(effect_data[0],effect_data[1],effect_data[2])
+            self.current_visible_effects.append(self.__create_single_effect_frame(effect_data.fun,effect_data.var1,effect_data.var2))
 
     def __clean_current_effect_frames(self):
         for effect_frame in self.current_visible_effects:
@@ -962,3 +1025,6 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __CB_connection(self,variable:list,new_value):
         variable[0] = new_value
+
+    def __CB_dial_to_lcd(self,lcd,variable):
+        lcd[0].display(variable)
