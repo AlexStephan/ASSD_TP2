@@ -117,14 +117,16 @@ class AdditiveSynthesis(SynthesisTemplate):
         freq_used = find_nearest(self.note_frequencies, note.frequency) # Agarro como frecuencia la mas cercana de las cargadas
         nearest_round = find_nearest(self.note_frequencies_round, freq_used) # Ademas agarro la redondeada para cargar los archivos
         partials_sum = 0 # Inicializo la variable de suma de parciales
-        n_of_partials = 35 # Numero de parciales cargados en memoria
+        n_of_partials = 10 # Numero de parciales cargados en memoria
         if freq_used == 1046.5: # Si la frecuencia elegida fue C6, tengo menos parciales (limite por Fs=44100)
-            n_of_partials = 20
+            n_of_partials = 10
         path = os.path.dirname(os.path.abspath(__file__))
-        files_path = os.path.join(path, 'src\\backend\\synthesis\\PianoPartialsNPY')
+        print(path)
+        path = path + '\\PianoPartialsNPY\\'
+        print(path)
 
         for i in range(n_of_partials): # Recorro todos los parciales
-            partial_i = np.load(files_path + str(nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
+            partial_i = np.load(path + str(nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
             factor_of_stretch = ((note.end - note.start) * self.Fs) / len(partial_i) # Veo por cuanto lo debo estirar o comprimir (segun el tiempo de la nota)
             if factor_of_stretch == 0: # Si ocurre esto la nota no tiene duracion(para evitar errores)
                 return
