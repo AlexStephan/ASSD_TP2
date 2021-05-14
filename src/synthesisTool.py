@@ -112,6 +112,7 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
         self.pushButton_synthesize_synthesize.clicked.connect(self.__CB_synthesize)
+        self.pushButton_synthesize_save.clicked.connect(self.__CB_)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
