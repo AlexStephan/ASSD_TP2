@@ -159,15 +159,25 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __CB_synthesis_timer_play_pause(self):
         print("Synthesis timer play pause!")
-        unfiltered_mix = self.__get_unfiltered_mix().content
-        max = np.amax(np.abs(unfiltered_mix))
-        streaming_mix = np.multiply(unfiltered_mix, ((2 ** 15) - 1) / max)
+        if self.state_synth == STATE_SYNTH.SYNTHESIZED:
+            unfiltered_mix = self.__get_unfiltered_mix().content
+            max = np.amax(np.abs(unfiltered_mix))
+            streaming_mix = np.multiply(unfiltered_mix, ((2 ** 15) - 1) / max)
 
-        self.unfiltered_mix = np.array(streaming_mix)
-        self.output_stream.start()
+            self.unfiltered_mix = np.array(streaming_mix)
+            self.output_stream.start()
+            self.__change_state_synth(STATE_SYNTH.PLAYING)
+        elif self.state_synth == STATE_SYNTH.PLAYING:
+            self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
+            self.output_stream.stop()
+        else:
+            self.__error_message("Playing/Pausing not available until synthesization")
 
     def __CB_synthesis_timer_stop(self):
         print("Synthesis timer stop")
+        self.__change_state_synth(STATE_SYNTH.SYNTHESIZED)
+        self.output_stream.stop()
+        self.current_position = 0
 
     def __CB_radioButton_selectNoteByFrequency(self):
         checked = self.radioButton_singleNotes_selectNoteByFrequency.isChecked()
@@ -434,10 +444,9 @@ class SynthesisTool(QWidget,Ui_Form):
         #position_in_audio = position_in_audio+frames
         #print(f"frames = {frames}")
         if self.current_position >= len(self.unfiltered_mix):
-            self.output_stream.stop()
             #self.output_stream.close()
             print("STOPPED!")
-            self.current_position = 0
+            self.__CB_synthesis_timer_stop()
         elif self.current_position + frames - 1 >= len(self.unfiltered_mix):
             outdata[:] = np.int16(np.reshape(np.pad(self.unfiltered_mix[self.current_position:],
                                 (0,self.current_position + frames-len(self.unfiltered_mix))),(frames,1)))
@@ -470,6 +479,12 @@ class SynthesisTool(QWidget,Ui_Form):
             NFFT,Fs,noverlap,window = self._get_spectrum_data()
             self.__clear_spectrogram()
             Pxx,freqs,bins,im = self.axis_spectrum.specgram(mix,NFFT=NFFT,Fs=Fs,noverlap=noverlap,window=window)
+
+            #f, t, Sxx =ssignal.spectrogram(mix,sample_rate)
+            #self.axis_spectrum.pcolormesh(t,f,Sxx)
+            #self.axis_spectrum.set_ylabel('Frequency [Hz]')
+            #self.axis_spectrum.set_xlabel('Time [s]')
+
             self.canvas_spectrum.draw()
 
     def _get_spectrum_data(self):
@@ -665,6 +680,7 @@ class SynthesisTool(QWidget,Ui_Form):
         self.errorBox.exec()
 
     def __change_state_synth(self,state: STATE_SYNTH):
+        print(f"STATE {state.name}")
         self.state_synth = state
         loaded = (self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED or
                   self.state_synth == STATE_SYNTH.PLAYING)
