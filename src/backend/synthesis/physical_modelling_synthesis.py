@@ -81,13 +81,15 @@ for n, channel in enumerate(tracks):
         print("Number = {}".format(note.number))
         print("Frequency = {}".format(note.frequency))
 
-guitar = PhysicalModellingSynthesis()
-guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
-aux = guitar.audio_track
-m = abs(max(max(aux.content), min(aux.content),key=abs))
-norm = (2**15)/m
-aux_norm = AudioTrack
-aux_norm.content = [x * norm for x in aux.content]
+if __name__ == '__main__':
 
-file = AudioSaver()
-file.save_wav_file(aux_norm,"Test_Guitar.wav")
+    guitar = PhysicalModellingSynthesis()
+    guitar.synthesize_audio_track(tracks[0], INSTRUMENT.GUITAR)
+    aux = guitar.audio_track
+    m = abs(max(max(aux.content), min(aux.content),key=abs))
+    norm = (2**15)/m
+    aux_norm = AudioTrack
+    aux_norm.content = [x * norm for x in aux.content]
+
+    file = AudioSaver()
+    file.save_wav_file(aux_norm,"Test_Guitar.wav")

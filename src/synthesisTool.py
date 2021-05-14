@@ -37,6 +37,8 @@ import os
 import sounddevice as sd
 
 # my modules!!!
+from src.backend.tracks.track import Track,TrackGroup
+
 from src.backend.midi2tracks import Midi2Tracks
 from src.backend.audio_tracks.audio_track import AudioTrack
 
@@ -44,8 +46,20 @@ from resources.testing_code.audio_loader import AudioLoader
 from src.backend.saver.audio_saver import AudioSaver
 #from resources.testing_code.player_test import callback_sound_test
 
+from src.backend.instruments.instrument_list import INSTRUMENT
+from src.backend.synthesis.synthesis_template import SynthesisTemplate
+from src.backend.synthesis.physical_modelling_synthesis import PhysicalModellingSynthesis
+from src.backend.synthesis.additive_synthesis import AdditiveSynthesis
+
 global test_audio_track
 global position_in_audio
+
+
+class STATE_SYNTH(Enum):
+    EMPTY = 0
+    LOADED = 1
+    SYNTHESIZED = 2
+    ERROR = 3
 
 
 class SynthesisTool(QWidget,Ui_Form):
@@ -80,14 +94,24 @@ class SynthesisTool(QWidget,Ui_Form):
 
     def __init_objects(self):
         self.midi2tracks = Midi2Tracks()
-
+        self.trackgroup = []
         self.errorBox = QtWidgets.QMessageBox()
+
+        self.track_frames = []
+
+        self.additive_synth = AdditiveSynthesis()
+        self.physical_synth = PhysicalModellingSynthesis()
+
+        self.audiotrackgroup = []
+
+        self.__change_state_synth(STATE_SYNTH.EMPTY)
 
     def __setCallbacks(self):
         self.radioButton_singleNotes_selectNoteByFrequency.clicked.connect(self.__CB_radioButton_selectNoteByFrequency)
         self.__CB_radioButton_selectNoteByFrequency()
 
         self.pushButton_synthesize_loadFile.clicked.connect(self.__CB_open_midi_file)
+        self.pushButton_synthesize_synthesize.clicked.connect(self.__CB_synthesize)
 
     def __CB_synthesis_timer_step(self):
         print("Synthesis timer step!")
@@ -122,32 +146,32 @@ class SynthesisTool(QWidget,Ui_Form):
 
         #self.pushButton_synthesize_foward.setDisabled(True)
 
-    def create_synthesis_track_box(self,newFrameName,numberOfTrack):
+    def create_synthesis_track_box(self,new_frame_name,numberOfTrack):
         new_frame = QtWidgets.QFrame(self.tab_synthesis)
         new_frame.setMinimumSize(QtCore.QSize(200,100))
         new_frame.setMaximumSize(QtCore.QSize(200,100))
         new_frame.setFrameShape(QtWidgets.QFrame.Box)
         new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        new_frame.setObjectName(newFrameName)
+        new_frame.setObjectName(new_frame_name)
 
         new_VLayout = QtWidgets.QVBoxLayout(new_frame)
-        new_VLayout.setObjectName("VLayout_"+newFrameName)
+        new_VLayout.setObjectName("VLayout_"+new_frame_name)
 
         new_HLayout = QtWidgets.QHBoxLayout()
-        new_HLayout.setObjectName("HLayout_"+newFrameName)
+        new_HLayout.setObjectName("HLayout_"+new_frame_name)
 
         new_label = QtWidgets.QLabel(new_frame)
-        new_label.setObjectName("Label_"+newFrameName)
+        new_label.setObjectName("Label_"+new_frame_name)
         new_label.setText("Track {0}".format(numberOfTrack))
         new_HLayout.addWidget(new_label)
 
         new_button = QtWidgets.QPushButton(new_frame)
-        new_button.setObjectName("Button_"+newFrameName)
+        new_button.setObjectName("Button_"+new_frame_name)
         new_button.setText("Select")
         new_HLayout.addWidget(new_button)
 
         new_radioButton = QtWidgets.QRadioButton(new_frame)
-        new_radioButton.setObjectName("RadioButton_"+newFrameName)
+        new_radioButton.setObjectName("RadioButton_"+new_frame_name)
         new_radioButton.setText("Mute")
         new_HLayout.addWidget(new_radioButton)
 
@@ -155,13 +179,13 @@ class SynthesisTool(QWidget,Ui_Form):
 
         new_HSlider = QtWidgets.QSlider(new_frame)
         new_HSlider.setOrientation(QtCore.Qt.Horizontal)
-        new_HSlider.setObjectName("Slider_"+newFrameName)
+        new_HSlider.setObjectName("Slider_"+new_frame_name)
         new_HSlider.setRange(0,99)
         new_HSlider.setValue(99)
         new_VLayout.addWidget(new_HSlider)
 
         new_comboBox = QtWidgets.QComboBox(new_frame)
-        new_comboBox.setObjectName("ComboBox_"+newFrameName)
+        new_comboBox.setObjectName("ComboBox_"+new_frame_name)
         new_comboBox.addItem("")
         new_comboBox.addItem("")
         new_comboBox.addItem("")
@@ -169,63 +193,63 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.verticalLayout_synthesis_trackList.addWidget(new_frame)
 
-    def create_synthesis_effect_box(self,newFrameName,newEffectName,newExtraData):
+    def create_synthesis_effect_box(self,new_frame_name,newEffectName,newExtraData):
         new_frame = QtWidgets.QFrame(self.tab_synthesis)
         #new_frame.setMinimumSize(QtCore.QSize(200,100))
         new_frame.setMaximumSize(QtCore.QSize(16777215,90))
         new_frame.setFrameShape(QtWidgets.QFrame.Box)
         new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        new_frame.setObjectName(newFrameName)
+        new_frame.setObjectName(new_frame_name)
 
         new_VLayout = QtWidgets.QVBoxLayout(new_frame)
-        new_VLayout.setObjectName("VLayout_" + newFrameName)
+        new_VLayout.setObjectName("VLayout_" + new_frame_name)
 
         new_HLayout = QtWidgets.QHBoxLayout()
-        new_HLayout.setObjectName("HLayout_" + newFrameName)
+        new_HLayout.setObjectName("HLayout_" + new_frame_name)
 
         new_Xbutton = QtWidgets.QPushButton(new_frame)
         new_Xbutton.setMinimumSize(QtCore.QSize(24,24))
         new_Xbutton.setMaximumSize(QtCore.QSize(24, 24))
-        new_Xbutton.setObjectName("XButton_" + newFrameName)
+        new_Xbutton.setObjectName("XButton_" + new_frame_name)
         new_Xbutton.setText("X")
         new_HLayout.addWidget(new_Xbutton)
 
         new_label = QtWidgets.QLabel(new_frame)
-        new_label.setObjectName("Label_" + newFrameName)
+        new_label.setObjectName("Label_" + new_frame_name)
         new_label.setText(newEffectName)
         new_HLayout.addWidget(new_label)
 
         new_button = QtWidgets.QPushButton(new_frame)
         new_Xbutton.setMaximumSize(QtCore.QSize(60, 16777215))
-        new_button.setObjectName("Button_" + newFrameName)
+        new_button.setObjectName("Button_" + new_frame_name)
         new_button.setText("Select")
         new_HLayout.addWidget(new_button)
 
         new_VLayout.addLayout(new_HLayout)
 
         new_extralabel = QtWidgets.QLabel(new_frame)
-        new_extralabel.setObjectName("ExtraLabel_" + newFrameName)
+        new_extralabel.setObjectName("ExtraLabel_" + new_frame_name)
         new_extralabel.setText(newExtraData)
         new_VLayout.addWidget(new_extralabel)
 
         self.verticalLayout_synthesis_effectList.addWidget(new_frame)
 
-    def create_spectrogram_track_box(self,newFrameName,numberOfTrack):
+    def create_spectrogram_track_box(self,new_frame_name,numberOfTrack):
         new_frame = QtWidgets.QFrame(self.scrollAreaWidgetContents_5)
         new_frame.setMaximumSize(QtCore.QSize(16777215, 45))
         new_frame.setFrameShape(QtWidgets.QFrame.Box)
         new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        new_frame.setObjectName(newFrameName)
+        new_frame.setObjectName(new_frame_name)
         new_HLayout = QtWidgets.QHBoxLayout(new_frame)
-        new_HLayout.setObjectName("HLayout_"+newFrameName)
+        new_HLayout.setObjectName("HLayout_"+new_frame_name)
         new_label = QtWidgets.QLabel(new_frame)
-        new_label.setObjectName("Label_"+newFrameName)
+        new_label.setObjectName("Label_"+new_frame_name)
         new_label.setText("Track {0}".format(numberOfTrack))
         new_HLayout.addWidget(new_label)
         new_radioButton = QtWidgets.QRadioButton(new_frame)
         new_radioButton.setMaximumSize(QtCore.QSize(16, 16))
         new_radioButton.setText("")
-        new_radioButton.setObjectName("RadioButton_"+newFrameName)
+        new_radioButton.setObjectName("RadioButton_"+new_frame_name)
         new_HLayout.addWidget(new_radioButton)
         self.verticalLayout_spectrogram_trackList.addWidget(new_frame)
 
@@ -368,13 +392,135 @@ class SynthesisTool(QWidget,Ui_Form):
         print(filename)
         if filename[0] != "":
             if self.midi2tracks.load_midi_file(filename[0]):
-                print("yahoo")
+                self.__delete_old_tracks_frames()
+                self.__create_new_tracks_frames()
+                self.__change_state_synth(STATE_SYNTH.LOADED)
             else:
                 self.__error_message("Couldn't open file!")
+                self.__change_state_synth(STATE_SYNTH.ERROR)
 
+    def __delete_old_tracks_frames(self):
+        for trackframe in self.track_frames:
+            self.__delete_single_track_frame_in_synthesis(trackframe)
+        self.track_frames = []
+
+    def __delete_single_track_frame_in_synthesis(self,trackframe:list):
+        [old_frame,old_VLayout,old_HLayout,
+         old_label,old_button,old_radioButton,
+         old_HSlider,old_comboBox] = trackframe
+
+        old_VLayout.removeWidget(old_comboBox)
+        old_comboBox.deleteLater()
+
+        old_VLayout.removeWidget(old_HSlider)
+        old_HSlider.deleteLater()
+
+        old_HLayout.removeWidget(old_label)
+        old_label.deleteLater()
+
+        old_HLayout.removeWidget(old_button)
+        old_button.deleteLater()
+
+        old_HLayout.removeWidget(old_radioButton)
+        old_radioButton.deleteLater()
+
+        old_HLayout.deleteLater()
+
+        old_VLayout.deleteLater()
+
+        self.verticalLayout_synthesis_trackList.removeWidget(old_frame)
+        old_frame.deleteLater()
+
+    def __create_new_tracks_frames(self):
+        self.trackgroup = self.midi2tracks.get_array_of_tracks()
+        for track in range(len(self.trackgroup)):
+            self.track_frames.append(self.__create_single_track_frame_in_synthesis(track+1))
+        return
+
+    def __create_single_track_frame_in_synthesis(self, track_number: int) -> list:
+        new_frame_name = f"NewFrame_{track_number}"
+
+        new_frame = QtWidgets.QFrame(self.tab_synthesis)
+        new_frame.setMinimumSize(QtCore.QSize(200,100))
+        new_frame.setMaximumSize(QtCore.QSize(200,100))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(new_frame_name)
+
+        new_VLayout = QtWidgets.QVBoxLayout(new_frame)
+        new_VLayout.setObjectName("VLayout_"+new_frame_name)
+
+        new_HLayout = QtWidgets.QHBoxLayout()
+        new_HLayout.setObjectName("HLayout_"+new_frame_name)
+
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_"+new_frame_name)
+        new_label.setText("Track {0}".format(track_number))
+        new_HLayout.addWidget(new_label)
+
+        new_button = QtWidgets.QPushButton(new_frame)
+        new_button.setObjectName("Button_"+new_frame_name)
+        new_button.setText("Select")
+        new_HLayout.addWidget(new_button)
+        new_button.setDisabled(True)
+
+        new_radioButton = QtWidgets.QRadioButton(new_frame)
+        new_radioButton.setObjectName("RadioButton_"+new_frame_name)
+        new_radioButton.setText("Mute")
+        new_HLayout.addWidget(new_radioButton)
+
+        new_VLayout.addLayout(new_HLayout)
+
+        new_HSlider = QtWidgets.QSlider(new_frame)
+        new_HSlider.setOrientation(QtCore.Qt.Horizontal)
+        new_HSlider.setObjectName("Slider_"+new_frame_name)
+        new_HSlider.setRange(0,99)
+        new_HSlider.setValue(99)
+        new_VLayout.addWidget(new_HSlider)
+
+        new_comboBox = QtWidgets.QComboBox(new_frame)
+        new_comboBox.setObjectName("ComboBox_"+new_frame_name)
+        new_comboBox.addItem("Select an instrument")
+        for inst in range(len(INSTRUMENT)-1):
+            new_comboBox.addItem(INSTRUMENT(inst+1).name)
+        #new_comboBox.addItem("")
+        #new_comboBox.addItem("")
+        new_VLayout.addWidget(new_comboBox)
+
+        self.verticalLayout_synthesis_trackList.addWidget(new_frame)
+
+        return [new_frame,new_VLayout,new_HLayout,
+                new_label,new_button,new_radioButton,
+                new_HSlider,new_comboBox]
 
     def __error_message(self, description:str):
         self.errorBox.setWindowTitle("Error")
         self.errorBox.setIcon(self.errorBox.Information)
         self.errorBox.setText(description)
         self.errorBox.exec()
+
+    def __change_state_synth(self,state: STATE_SYNTH):
+        self.state_synth = state
+        loaded = (self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED)
+        synthesized = self.state_synth == STATE_SYNTH.SYNTHESIZED
+
+        self.pushButton_synthesize_synthesize.setDisabled(not loaded)
+        self.pushButton_synthesize_save.setDisabled(not synthesized)
+
+    def __CB_synthesize(self):
+        if self.state_synth == STATE_SYNTH.LOADED or self.state_synth == STATE_SYNTH.SYNTHESIZED:
+            self.audiotrackgroup = []
+            for i,track in enumerate(self.trackgroup):
+                self.audiotrackgroup.append(self.__synthesize_handler(track,))
+        else:
+            self.__error_message("Synthesize is not currently available")
+
+    def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
+        print("yo")
+
+    def __get_instrument_selected(self,index:int)->INSTRUMENT:
+        try:
+            return INSTRUMENT.NONE
+        except:
+            self.__error_message("Invalid track index specified!")
+            return INSTRUMENT.NONE
