@@ -32,6 +32,7 @@ from sympy import I
 # ?
 import math
 import os
+from typing import Callable
 from matplotlib.mlab import window_hanning,window_none
 
 # !!!
@@ -57,8 +58,8 @@ from src.backend.spectrum.audiotrack2spectrum import blackman,bartlett,hamming,b
 
 from src.backend.audio_tracks.audio_constants import sample_rate
 
-global test_audio_track
-global position_in_audio
+#global test_audio_track
+#global position_in_audio
 
 
 class STATE_SYNTH(Enum):
@@ -128,6 +129,8 @@ class SynthesisTool(QWidget,Ui_Form):
 
         self.unfiltered_mix = np.array([])
         self.current_position = 0
+
+        self.aux_index = 0
 
     def __init_graphs(self):
         self.figure_spectrum = Figure()
@@ -590,6 +593,42 @@ class SynthesisTool(QWidget,Ui_Form):
             self.track_frames.append(self.__create_single_track_frame_in_synthesis(track+1))
             self.track_frames_spectrogram.append(self.__create_single_track_frame_in_spectrogram(track+1))
         return
+
+    def __create_single_effect_frame(self, fun: Callable):
+        new_frame_name = f"NewFrameEffect_{self.aux_index}"
+        self.aux_index = self.aux_index +1
+
+        new_frame = QtWidgets.QFrame(self.tab_synthesis)
+        new_frame.setMaximumSize(QtCore.QSize(16777215, 200))
+        new_frame.setFrameShape(QtWidgets.QFrame.Box)
+        new_frame.setFrameShadow(QtWidgets.QFrame.Raised)
+        new_frame.setObjectName(new_frame_name)
+
+        new_VLayout = QtWidgets.QVBoxLayout(new_frame)
+        new_VLayout.setObjectName("V_"+new_frame_name)
+
+        new_superiorHLayout = QtWidgets.QHBoxLayout()
+        new_superiorHLayout.setObjectName("Hs_"+new_frame_name)
+        new_VLayout.addLayout(new_superiorHLayout)
+
+        new_button = QtWidgets.QPushButton(new_frame)
+        new_button.setObjectName("Button_"+new_frame_name)
+        new_button.setMaximumWidth(QtCore.QSize(24,24))
+        new_button.setMinimumWidth(QtCore.QSize(24, 24))
+        new_button.setText("X")
+        new_superiorHLayout.addWidget(new_button)
+
+        if fun ==
+
+        new_label = QtWidgets.QLabel(new_frame)
+        new_label.setObjectName("Label_"+new_frame_name)
+        new_label.setText("Track {0}".format(track_number))
+        new_HLayout.addWidget(new_label)
+
+
+
+
+
 
     def __create_single_track_frame_in_spectrogram(self, track_number: int) -> list:
         new_frame_name = f"NewFrame_{track_number}"
