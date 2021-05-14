@@ -560,7 +560,9 @@ class SynthesisTool(QWidget,Ui_Form):
             partial = np.pad(audiotrack.content,(0,max_lenght-len(audiotrack.content)))
             weighted = np.multiply(partial,self.__get_velocity_selected(i)/127)
             mix = mix + weighted
-        return mix
+        audio_mix = AudioTrack()
+        audio_mix.content = mix
+        return audio_mix
 
     def __get_velocity_selected(self,index:int) -> int:
         try:
