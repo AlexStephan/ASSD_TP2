@@ -533,10 +533,10 @@ class SynthesisTool(QWidget,Ui_Form):
     def __synthesize_handler(self,track:Track,instrument:INSTRUMENT) -> AudioTrack:
         print("__synthesize_handler")
         print(instrument.name)
-        if instrument == INSTRUMENT.PIANO or instrument == INSTRUMENT.DRUM:
+        if instrument == INSTRUMENT.GUITAR or instrument == INSTRUMENT.DRUM:
             self.physical_synth.synthesize_audio_track(track,instrument)
             return self.physical_synth.get_audio_track()
-        elif instrument == INSTRUMENT.GUITAR:
+        elif instrument == INSTRUMENT.PIANO:
             self.additive_synth.synthesize_audio_track(track,instrument)
             return self.additive_synth.get_audio_track()
         else:
