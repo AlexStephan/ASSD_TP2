@@ -875,7 +875,7 @@ class SynthesisTool(QWidget,Ui_Form):
             track_frame[4].setDisabled(not synthesized)
 
     def __CB_select_track_to_see_effects(self,track_number:int):
-        self.__clean_current_effect_frames() # TODO
+        self.__clean_current_effect_frames() #
         self.__load_effect_frames(track_number) # 0 es principal!
         self.selected_track = track_number
 

@@ -231,7 +231,28 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_5">
              <item>
-              <widget class="QComboBox" name="comboBox_synthesize_selectEffectType"/>
+              <widget class="QComboBox" name="comboBox_synthesize_selectEffectType">
+               <item>
+                <property name="text">
+                 <string>Add Effect - Track</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Eco</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Simple Reverb</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Flanger</string>
+                </property>
+               </item>
+              </widget>
              </item>
              <item>
               <widget class="QPushButton" name="pushButton_synthesize_addEffect">
