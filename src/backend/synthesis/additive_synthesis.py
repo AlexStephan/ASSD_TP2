@@ -114,8 +114,6 @@ class AdditiveSynthesis(SynthesisTemplate):
             Nothing
         """
         freq_used = find_nearest(self.note_frequencies, note.frequency) # Agarro como frecuencia la mas cercana de las cargadas
-        if freq_used > note.frequency: # Si la que agarre es mayor, voy a la mas cercana menor (menos distorsion)
-            freq_used = self.note_frequencies[self.note_frequencies.index(freq_used) - 1]
         nearest_round = find_nearest(self.note_frequencies_round, freq_used) # Ademas agarro la redondeada para cargar los archivos
         partials_sum = 0 # Inicializo la variable de suma de parciales
         n_of_partials = 35 # Numero de parciales cargados en memoria
@@ -123,7 +121,7 @@ class AdditiveSynthesis(SynthesisTemplate):
             n_of_partials = 20
         for i in range(n_of_partials): # Recorro todos los parciales
             partial_i = np.load(
-                'C:\\Users\\Tobi\\PycharmProjects\\ASSD_TP2\\src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
+                'src\\backend\\synthesis\\PianoPartialsNPY\\' + str(
                     nearest_round) + 'PianoPartial' + str(i + 1) + '.npy') # Cargo el parcial actual
             factor_of_stretch = ((note.end - note.start) * self.Fs) / len(partial_i) # Veo por cuanto lo debo estirar o comprimir (segun el tiempo de la nota)
             if factor_of_stretch == 0: # Si ocurre esto la nota no tiene duracion(para evitar errores)
@@ -151,7 +149,7 @@ class AdditiveSynthesis(SynthesisTemplate):
                     Nothing
                 """
         super().synthesize_audio_track(track, instrument)
-        if self.instrument != PIANO: # Si no quiero sintetizar un piano da error
+        if self.instrument != INSTRUMENT.PIANO: # Si no quiero sintetizar un piano da error
             self.state = STATE.ERROR
         else:
             song_end = 0 # Inicializo la variable que me indica el final de la cancion
@@ -161,7 +159,7 @@ class AdditiveSynthesis(SynthesisTemplate):
             self.song = np.zeros(int(math.ceil(song_end * self.Fs))) # Inicializo el arreglo de la cancion con ceros
 
             for i in track: # Sintetizo todas las notas del track dado en la cancion
-                self.synthesize_note(self, i)
+                self.synthesize_note(i)
 
             max_velocity = 0
             for i in range(len(self.song)): # Calculo el volumen maximo de la cancion en un instante
